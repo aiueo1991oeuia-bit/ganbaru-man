@@ -53,67 +53,62 @@
 let stage = 0;
 let maxWeight = 0;
 
+// ★5kg単位丸め
+function round5(num){
+return Math.round(num / 5) * 5;
+}
+
 function start(){
 
 let w = Number(document.getElementById("weight").value);
 let sex = document.getElementById("sex").value;
 let goal = document.getElementById("goal").value;
 
-maxWeight = Number(document.getElementById("max").value);
+maxWeight = round5(Number(document.getElementById("max").value));
 stage = 0;
 
 // カロリー
-let cal = (sex === "male") ? w*33 : w*30;
+let cal = (sex==="male") ? w*33 : w*30;
 if(goal==="bulk") cal+=300;
 if(goal==="cut") cal-=300;
 
 // タンパク質（1日）
-let p = (sex==="male") ? w*1.6 : w*1.3;
+let proteinDay = (sex==="male") ? w*1.6 : w*1.3;
 
-// ★1食分（体重×0.4）
-let pMeal = Math.round(w * 0.4);
+// 1食（体重×0.4）
+let proteinMeal = Math.round(w*0.4);
 
-// 食事（詳細マクロ）
+// 食事
 let meals = [
 ()=>{
-let meat = Math.round(pMeal/0.2);
+let meat = Math.round(proteinMeal/0.2);
 let protein = Math.round(meat*0.2);
 let fat = Math.round(meat*0.15);
 let carb = 55;
 let kcal = protein*4 + fat*9 + carb*4;
 
-return `親子丼（鶏もも${meat}g・卵2個）
-P:${protein}g F:${fat}g C:${carb}g 約${kcal}kcal`;
+return `親子丼（鶏もも肉${meat}g・卵2個）
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;
 },
 ()=>{
-let meat = Math.round(pMeal/0.2);
+let meat = Math.round(proteinMeal/0.2);
 let protein = Math.round(meat*0.2);
 let fat = Math.round(meat*0.3);
 let carb = 60;
 let kcal = protein*4 + fat*9 + carb*4;
 
-return `牛丼（牛バラ${meat}g）
-P:${protein}g F:${fat}g C:${carb}g 約${kcal}kcal`;
-},
-()=>{
-let meat = Math.round(pMeal/0.22);
-let protein = Math.round(meat*0.22);
-let fat = Math.round(meat*0.1);
-let carb = 55;
-let kcal = protein*4 + fat*9 + carb*4;
-
-return `焼き鮭定食（鮭${meat}g）
-P:${protein}g F:${fat}g C:${carb}g 約${kcal}kcal`;
+return `牛丼（牛バラ肉${meat}g）
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;
 }
 ];
 
 let meal = meals[Math.floor(Math.random()*meals.length)]();
 
 document.getElementById("nutrition").innerText =
-"1日の目安：タンパク質 "+Math.round(p)+"g / カロリー "+Math.round(cal)+"kcal";
+"1日の目安：タンパク質 "+Math.round(proteinDay)+"g / カロリー "+Math.round(cal)+"kcal";
 
 document.getElementById("meal").innerText =
-"1食例（目安）：\n"+meal;
+"1食例：\n"+meal;
 
 updateMenu();
 }
@@ -122,7 +117,7 @@ function record(success){
 
 if(stage===4){
 if(success){
-maxWeight+=5;
+maxWeight += 5;
 alert("MAX更新🔥 "+maxWeight+"kg");
 stage=0;
 }else{
@@ -142,11 +137,11 @@ function updateMenu(){
 
 let w;
 
-if(stage===0) w=Math.round(maxWeight*0.65);
-if(stage===1) w=Math.round(maxWeight*0.75);
-if(stage===2) w=Math.round(maxWeight*0.85);
-if(stage===3) w=Math.round(maxWeight*0.92);
-if(stage===4) w=maxWeight+5;
+if(stage===0) w=round5(maxWeight*0.65);
+if(stage===1) w=round5(maxWeight*0.75);
+if(stage===2) w=round5(maxWeight*0.85);
+if(stage===3) w=round5(maxWeight*0.92);
+if(stage===4) w=round5(maxWeight+5);
 
 let text="";
 
@@ -183,11 +178,16 @@ text=`🔥MAXチャレンジ🔥
 ベンチ ${w}kg 1回`;
 }
 
-// 日本人動画（埋め込みOK）
+// 日本人動画（種目別）
 let videoHTML = `
 <iframe width="100%" height="200"
-src="https://www.youtube.com/embed/gRVjAtPip0Y"
-allowfullscreen></iframe>
+src="https://www.youtube.com/embed/gRVjAtPip0Y"></iframe>
+
+<iframe width="100%" height="200"
+src="https://www.youtube.com/embed/2z8JmcrW-As"></iframe>
+
+<iframe width="100%" height="200"
+src="https://www.youtube.com/embed/VmB1G1K7v94"></iframe>
 `;
 
 document.getElementById("status").innerText =
