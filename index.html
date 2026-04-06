@@ -16,11 +16,21 @@
 <!-- 入力 -->
 <div class="bg-white p-4 rounded shadow">
 
+<select id="sex" class="border p-1 w-full mb-2">
+<option value="male">男性</option>
+<option value="female">女性</option>
+</select>
+
 <input id="weight" type="number" placeholder="体重(kg)" class="border p-1 w-full mb-2">
 <input id="max" type="number" placeholder="ベンチMAX(kg)" class="border p-1 w-full mb-2">
 
-<button onclick="start()" class="bg-blue-500 text-white w-full p-2 rounded">開始</button>
+<select id="goal" class="border p-1 w-full mb-2">
+<option value="bulk">増量</option>
+<option value="maintain">維持</option>
+<option value="cut">減量</option>
+</select>
 
+<button onclick="start()" class="bg-blue-500 text-white w-full p-2 rounded">開始</button>
 <button onclick="record(true)" class="bg-green-500 text-white w-full p-2 mt-2 rounded">成功</button>
 <button onclick="record(false)" class="bg-red-500 text-white w-full p-2 mt-2 rounded">失敗</button>
 
@@ -30,6 +40,8 @@
 <div class="bg-white p-4 rounded shadow">
 
 <p id="status"></p>
+<p id="nutrition"></p>
+<p id="meal"></p>
 <p id="menu" class="mt-2 whitespace-pre-line"></p>
 
 <div id="video" class="mt-4"></div>
@@ -44,36 +56,62 @@ let stage = 0;
 let maxWeight = 0;
 
 function start(){
+
+let w = document.getElementById("weight").value;
+let sex = document.getElementById("sex").value;
+let goal = document.getElementById("goal").value;
+
 maxWeight = parseInt(document.getElementById("max").value);
 stage = 0;
+
+// カロリー
+let cal = (sex === "male") ? w*33 : w*30;
+if(goal === "bulk") cal += 300;
+if(goal === "cut") cal -= 300;
+
+// タンパク質
+let p = (sex === "male") ? w*1.6 : w*1.3;
+let pMeal = Math.round(p/3);
+
+// 食事（ランダム）
+let meals = [
+"親子丼（鶏もも約"+Math.round(pMeal/0.2)+"g 卵"+Math.round(pMeal/6)+"個）",
+"牛丼（牛肉約"+Math.round(pMeal/0.2)+"g）",
+"豚の生姜焼き（豚肉約"+Math.round(pMeal/0.2)+"g）",
+"焼き鮭定食（鮭約"+Math.round(pMeal/0.22)+"g）"
+];
+
+let meal = meals[Math.floor(Math.random()*meals.length)];
+
+document.getElementById("nutrition").innerText =
+"カロリー："+Math.round(cal)+"kcal / タンパク質："+Math.round(p)+"g";
+
+document.getElementById("meal").innerText =
+"食事例："+meal+" + 白米1杯";
+
 updateMenu();
 }
 
 function record(success){
 
-// MAXチャレンジ処理
 if(stage === 4){
-
 if(success){
 maxWeight += 5;
-alert("MAX更新🔥 " + maxWeight + "kg");
+alert("MAX更新🔥 "+maxWeight+"kg");
 stage = 0;
 }else{
 stage = 0;
 }
-
 }else{
-
 if(success){
 stage++;
 }else{
 stage--;
 }
-
 }
 
-if(stage < 0) stage = 0;
-if(stage > 4) stage = 4;
+if(stage<0) stage=0;
+if(stage>4) stage=4;
 
 updateMenu();
 }
@@ -82,77 +120,46 @@ function updateMenu(){
 
 let w;
 
-if(stage === 0) w = Math.round(maxWeight * 0.65);
-if(stage === 1) w = Math.round(maxWeight * 0.75);
-if(stage === 2) w = Math.round(maxWeight * 0.85);
-if(stage === 3) w = Math.round(maxWeight * 0.92);
-if(stage === 4) w = maxWeight + 5;
+if(stage===0) w=Math.round(maxWeight*0.65);
+if(stage===1) w=Math.round(maxWeight*0.75);
+if(stage===2) w=Math.round(maxWeight*0.85);
+if(stage===3) w=Math.round(maxWeight*0.92);
+if(stage===4) w=maxWeight+5;
 
-let text = "";
+let text="";
 
-if(stage === 0){
-text =
-"Stage0（フォーム）\n"+
-"ベンチ "+w+"kg 8回×3セット（インターバル1〜2分）\n\n"+
-"補助\n"+
-"・ダンベルプレス 20kg 10回×3\n"+
-"・トライセプス 20kg 12回×3\n"+
-"・腕立て 限界×2";
+if(stage===0){
+text="Stage0（フォーム）\nベンチ "+w+"kg 8回×3（休憩1〜2分）";
+}
+if(stage===1){
+text="Stage1（中）\nベンチ "+w+"kg 5回×4（休憩2〜3分）";
+}
+if(stage===2){
+text="Stage2（重）\nベンチ "+w+"kg 3回×3（休憩3分）";
+}
+if(stage===3){
+text="Stage3（超重）\nベンチ "+w+"kg 2回×3（休憩3分）";
+}
+if(stage===4){
+text="🔥MAXチャレンジ🔥\nベンチ "+w+"kg 1回";
 }
 
-if(stage === 1){
-text =
-"Stage1（中）\n"+
-"ベンチ "+w+"kg 5回×4セット（インターバル2〜3分）\n\n"+
-"補助\n"+
-"・インクラインプレス 22kg 10回×3\n"+
-"・ディップス 自重 10回×3\n"+
-"・サイドレイズ 10kg 12回×3";
-}
-
-if(stage === 2){
-text =
-"Stage2（重）\n"+
-"ベンチ "+w+"kg 3回×3セット（インターバル3分）\n\n"+
-"補助\n"+
-"・ディップス +10kg 8回×3\n"+
-"・ダンベルプレス 25kg 8回×3\n"+
-"・プレスダウン 25kg 12回×3";
-}
-
-if(stage === 3){
-text =
-"Stage3（超重）\n"+
-"ベンチ "+w+"kg 2回×3セット（インターバル3分）\n\n"+
-"補助\n"+
-"・ディップス +15kg 6回×3\n"+
-"・ダンベルプレス 28kg 6回×3\n"+
-"・プレスダウン 30kg 10回×3";
-}
-
-if(stage === 4){
-text =
-"🔥MAXチャレンジ🔥\n"+
-"ベンチ "+w+"kg 1回\n\n"+
-"成功でMAX更新（+5kg）";
-}
-
-// 動画（種目連動）
+// 日本人向け動画
 let videoHTML = `
 <iframe width="100%" height="200"
-src="https://www.youtube.com/embed/rT7DgCr-3pg"
-frameborder="0" allowfullscreen></iframe>
+src="https://www.youtube.com/embed/5n7qZ3z0YwE"
+allowfullscreen></iframe>
 
 <iframe width="100%" height="200"
-src="https://www.youtube.com/embed/2z8JmcrW-As"
-frameborder="0" allowfullscreen></iframe>
+src="https://www.youtube.com/embed/0cXAp6WhSj4"
+allowfullscreen></iframe>
 `;
 
 document.getElementById("status").innerText =
-"Stage：" + stage + " / MAX：" + maxWeight + "kg";
+"Stage："+stage+" / MAX："+maxWeight+"kg";
 
-document.getElementById("menu").innerText = text;
-document.getElementById("video").innerHTML = videoHTML;
+document.getElementById("menu").innerText=text;
+document.getElementById("video").innerHTML=videoHTML;
 
 }
 
