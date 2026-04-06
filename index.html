@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ganbaru-log</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-4">
+
+<h1 class="text-2xl font-bold text-center mb-4">ganbaru-log</h1>
+
+<div class="grid gap-4">
+
+<!-- 入力 -->
+<div class="bg-white p-4 rounded shadow">
+<h2 class="font-bold mb-2">入力</h2>
+
+<input id="weight" type="number" placeholder="体重(kg)" class="border p-1 w-full mb-2">
+<input id="age" type="number" placeholder="年齢" class="border p-1 w-full mb-2">
+
+<select id="protein" class="border p-1 w-full mb-2">
+<option>肉</option>
+<option>魚</option>
+<option>その他</option>
+</select>
+
+<select id="carb" class="border p-1 w-full mb-2">
+<option>白米</option>
+<option>玄米</option>
+<option>パン</option>
+<option>オートミール</option>
+</select>
+
+<input id="target" type="number" placeholder="目標タンパク質(g)" class="border p-1 w-full mb-2">
+
+<button onclick="calc()" class="bg-blue-500 text-white w-full p-2 rounded">
+計算
+</button>
+</div>
+
+<!-- 出力 -->
+<div class="bg-white p-4 rounded shadow">
+<h2 class="font-bold mb-2">結果</h2>
+
+<p id="calorie"></p>
+<p id="menu" class="mt-2 font-bold"></p>
+
+</div>
+
+</div>
+
+<script>
+function calc() {
+let w = document.getElementById("weight").value;
+let age = document.getElementById("age").value;
+let p = document.getElementById("protein").value;
+let c = document.getElementById("carb").value;
+let t = document.getElementById("target").value;
+
+if (!w || !age || !t) {
+alert("全部入力して");
+return;
+}
+
+// 基礎代謝（簡易）
+let bmr = 13.7*w + 66;
+
+// 消費カロリー
+let cal = Math.round(bmr * 1.5);
+
+document.getElementById("calorie").innerText =
+"消費カロリー：約" + cal + " kcal";
+
+// メニュー
+let result = "";
+
+if (p === "肉") {
+let g = Math.round(t / 0.23);
+result = "鶏むね肉 " + g + "g ＋ " + c + "（1杯）";
+}
+else if (p === "魚") {
+let g = Math.round(t / 0.22);
+result = "鮭 " + g + "g ＋ " + c + "（1杯）";
+}
+else {
+let n = Math.round(t / 6);
+result = "卵 " + n + "個 ＋ " + c + "（1杯）";
+}
+
+document.getElementById("menu").innerText =
+result + " → 約" + t + "gタンパク質";
+}
+</script>
+
+</body>
+</html>
