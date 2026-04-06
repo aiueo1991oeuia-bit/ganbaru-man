@@ -56,6 +56,13 @@
 
 </div>
 
+<!-- 🔥 一番下に配置 -->
+<div class="mt-6">
+<button onclick="resetLog()" class="bg-red-600 text-white w-full p-3 rounded">
+⚠️ ログを全削除
+</button>
+</div>
+
 <script>
 
 let stage = 0;
@@ -75,27 +82,22 @@ let goal = document.getElementById("goal").value;
 maxWeight = round5(Number(document.getElementById("max").value));
 stage = 0;
 
-// カロリー
 let cal = (sex==="male") ? w*33 : w*30;
 if(goal==="bulk") cal+=300;
 if(goal==="cut") cal-=300;
 
-// タンパク質
 let proteinDay = (sex==="male") ? w*1.6 : w*1.3;
 let proteinMeal = Math.round(w*0.4);
 
-// 米
 let riceLabel="", carb=0;
 if(goal==="cut"){ riceLabel="0.7杯"; carb=37; }
 if(goal==="maintain"){ riceLabel="1杯"; carb=55; }
 if(goal==="bulk"){ riceLabel="1.5杯"; carb=80; }
 
-// 卵
 const eggCount = (goal==="bulk") ? 2 : 1;
 const eggProtein = eggCount*6;
 const eggFat = eggCount*5;
 
-// 食事
 let meals = [
 ()=>{
 let meat = Math.max(80, Math.round((proteinMeal-eggProtein)/0.2));
@@ -203,7 +205,7 @@ document.getElementById("menu").innerText=text;
 document.getElementById("rest").innerText =
 (stage<=1)?"※軽め：週3〜4回OK":"※高強度：1〜2日休み";
 
-// 動画（種目連動）
+// 動画連動
 let videos={
 bench:{id:"W36C1YcI1MM",title:"ベンチプレス"},
 dumbbell:{id:"pctyhH_HYxc",title:"ダンベルプレス"},
@@ -256,6 +258,13 @@ log.forEach(l=>{
 html+=`<li>${l.date}｜Stage${l.stage}｜${l.result}｜MAX${l.max}kg</li>`;
 });
 document.getElementById("logList").innerHTML=html;
+}
+
+function resetLog(){
+if(confirm("ログを全て削除しますか？")){
+localStorage.removeItem("log");
+loadLog();
+}
 }
 
 </script>
