@@ -13,7 +13,6 @@
 
 <div class="grid gap-4">
 
-<!-- 入力 -->
 <div class="bg-white p-4 rounded shadow">
 
 <select id="sex" class="border p-1 w-full mb-2">
@@ -32,11 +31,10 @@
 
 <button onclick="start()" class="bg-blue-500 text-white w-full p-2 rounded">開始</button>
 <button onclick="record(true)" class="bg-green-500 text-white w-full p-2 mt-2 rounded">成功</button>
-<button onclick="record(false)" class="bg-red-500 text-white w-full p-2 mt-2 rounded">失敗</button>
+<button onclick="record(false)" class="bg-red-500 text-white w-full p-2 mt-2 mt-2 rounded">失敗</button>
 
 </div>
 
-<!-- 出力 -->
 <div class="bg-white p-4 rounded shadow">
 
 <p id="status"></p>
@@ -73,18 +71,19 @@ if(goal === "cut") cal -= 300;
 let p = (sex === "male") ? w*1.6 : w*1.3;
 let pMeal = Math.round(p/3);
 
-// 食事（ランダム）
+// 食事（部位固定）
 let meals = [
-"親子丼（鶏もも約"+Math.round(pMeal/0.2)+"g 卵"+Math.round(pMeal/6)+"個）",
-"牛丼（牛肉約"+Math.round(pMeal/0.2)+"g）",
-"豚の生姜焼き（豚肉約"+Math.round(pMeal/0.2)+"g）",
-"焼き鮭定食（鮭約"+Math.round(pMeal/0.22)+"g）"
+"親子丼（鶏もも肉 約"+Math.round(pMeal/0.2)+"g + 卵"+Math.round(pMeal/6)+"個）",
+"牛丼（牛バラ肉 約"+Math.round(pMeal/0.2)+"g）",
+"ステーキ（牛ロース 約"+Math.round(pMeal/0.22)+"g）",
+"豚の生姜焼き（豚ロース 約"+Math.round(pMeal/0.2)+"g）",
+"焼き鮭定食（鮭 約"+Math.round(pMeal/0.22)+"g）"
 ];
 
 let meal = meals[Math.floor(Math.random()*meals.length)];
 
 document.getElementById("nutrition").innerText =
-"カロリー："+Math.round(cal)+"kcal / タンパク質："+Math.round(p)+"g";
+"体重あたりの1日のタンパク質摂取目安："+Math.round(p)+"g / カロリー："+Math.round(cal)+"kcal";
 
 document.getElementById("meal").innerText =
 "食事例："+meal+" + 白米1杯";
@@ -144,14 +143,14 @@ if(stage===4){
 text="🔥MAXチャレンジ🔥\nベンチ "+w+"kg 1回";
 }
 
-// 日本人向け動画
+// 動画（埋め込みOKなやつ）
 let videoHTML = `
 <iframe width="100%" height="200"
-src="https://www.youtube.com/embed/5n7qZ3z0YwE"
+src="https://www.youtube.com/embed/gRVjAtPip0Y"
 allowfullscreen></iframe>
 
 <iframe width="100%" height="200"
-src="https://www.youtube.com/embed/0cXAp6WhSj4"
+src="https://www.youtube.com/embed/IODxDxX7oi4"
 allowfullscreen></iframe>
 `;
 
