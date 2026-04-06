@@ -31,7 +31,7 @@
 
 <button onclick="start()" class="bg-blue-500 text-white w-full p-2 rounded">開始</button>
 <button onclick="record(true)" class="bg-green-500 text-white w-full p-2 mt-2 rounded">成功</button>
-<button onclick="record(false)" class="bg-red-500 text-white w-full p-2 mt-2 mt-2 rounded">失敗</button>
+<button onclick="record(false)" class="bg-red-500 text-white w-full p-2 mt-2 rounded">失敗</button>
 
 </div>
 
@@ -55,58 +55,81 @@ let maxWeight = 0;
 
 function start(){
 
-let w = document.getElementById("weight").value;
+let w = Number(document.getElementById("weight").value);
 let sex = document.getElementById("sex").value;
 let goal = document.getElementById("goal").value;
 
-maxWeight = parseInt(document.getElementById("max").value);
+maxWeight = Number(document.getElementById("max").value);
 stage = 0;
 
 // カロリー
 let cal = (sex === "male") ? w*33 : w*30;
-if(goal === "bulk") cal += 300;
-if(goal === "cut") cal -= 300;
+if(goal==="bulk") cal+=300;
+if(goal==="cut") cal-=300;
 
-// タンパク質
-let p = (sex === "male") ? w*1.6 : w*1.3;
-let pMeal = Math.round(p/3);
+// タンパク質（1日）
+let p = (sex==="male") ? w*1.6 : w*1.3;
 
-// 食事（部位固定）
+// ★1食分（体重×0.4）
+let pMeal = Math.round(w * 0.4);
+
+// 食事（詳細マクロ）
 let meals = [
-"親子丼（鶏もも肉 約"+Math.round(pMeal/0.2)+"g + 卵"+Math.round(pMeal/6)+"個）",
-"牛丼（牛バラ肉 約"+Math.round(pMeal/0.2)+"g）",
-"ステーキ（牛ロース 約"+Math.round(pMeal/0.22)+"g）",
-"豚の生姜焼き（豚ロース 約"+Math.round(pMeal/0.2)+"g）",
-"焼き鮭定食（鮭 約"+Math.round(pMeal/0.22)+"g）"
+()=>{
+let meat = Math.round(pMeal/0.2);
+let protein = Math.round(meat*0.2);
+let fat = Math.round(meat*0.15);
+let carb = 55;
+let kcal = protein*4 + fat*9 + carb*4;
+
+return `親子丼（鶏もも${meat}g・卵2個）
+P:${protein}g F:${fat}g C:${carb}g 約${kcal}kcal`;
+},
+()=>{
+let meat = Math.round(pMeal/0.2);
+let protein = Math.round(meat*0.2);
+let fat = Math.round(meat*0.3);
+let carb = 60;
+let kcal = protein*4 + fat*9 + carb*4;
+
+return `牛丼（牛バラ${meat}g）
+P:${protein}g F:${fat}g C:${carb}g 約${kcal}kcal`;
+},
+()=>{
+let meat = Math.round(pMeal/0.22);
+let protein = Math.round(meat*0.22);
+let fat = Math.round(meat*0.1);
+let carb = 55;
+let kcal = protein*4 + fat*9 + carb*4;
+
+return `焼き鮭定食（鮭${meat}g）
+P:${protein}g F:${fat}g C:${carb}g 約${kcal}kcal`;
+}
 ];
 
-let meal = meals[Math.floor(Math.random()*meals.length)];
+let meal = meals[Math.floor(Math.random()*meals.length)]();
 
 document.getElementById("nutrition").innerText =
-"体重あたりの1日のタンパク質摂取目安："+Math.round(p)+"g / カロリー："+Math.round(cal)+"kcal";
+"1日の目安：タンパク質 "+Math.round(p)+"g / カロリー "+Math.round(cal)+"kcal";
 
 document.getElementById("meal").innerText =
-"食事例："+meal+" + 白米1杯";
+"1食例（目安）：\n"+meal;
 
 updateMenu();
 }
 
 function record(success){
 
-if(stage === 4){
+if(stage===4){
 if(success){
-maxWeight += 5;
+maxWeight+=5;
 alert("MAX更新🔥 "+maxWeight+"kg");
-stage = 0;
+stage=0;
 }else{
-stage = 0;
+stage=0;
 }
 }else{
-if(success){
-stage++;
-}else{
-stage--;
-}
+if(success){stage++}else{stage--}
 }
 
 if(stage<0) stage=0;
@@ -128,29 +151,42 @@ if(stage===4) w=maxWeight+5;
 let text="";
 
 if(stage===0){
-text="Stage0（フォーム）\nベンチ "+w+"kg 8回×3（休憩1〜2分）";
-}
-if(stage===1){
-text="Stage1（中）\nベンチ "+w+"kg 5回×4（休憩2〜3分）";
-}
-if(stage===2){
-text="Stage2（重）\nベンチ "+w+"kg 3回×3（休憩3分）";
-}
-if(stage===3){
-text="Stage3（超重）\nベンチ "+w+"kg 2回×3（休憩3分）";
-}
-if(stage===4){
-text="🔥MAXチャレンジ🔥\nベンチ "+w+"kg 1回";
+text=`Stage0
+ベンチ ${w}kg 8回×3（休憩1〜2分）
+・ダンベルプレス 20kg 10回×3
+・トライセプス 20kg 12回×3`;
 }
 
-// 動画（埋め込みOKなやつ）
+if(stage===1){
+text=`Stage1
+ベンチ ${w}kg 5回×4（休憩2〜3分）
+・インクラインプレス 22kg 10回×3
+・ディップス 自重 10回×3`;
+}
+
+if(stage===2){
+text=`Stage2
+ベンチ ${w}kg 3回×3（休憩3分）
+・ディップス +10kg 8回×3
+・ダンベルプレス 25kg 8回×3`;
+}
+
+if(stage===3){
+text=`Stage3
+ベンチ ${w}kg 2回×3（休憩3分）
+・ディップス +15kg 6回×3
+・プレスダウン 30kg 10回×3`;
+}
+
+if(stage===4){
+text=`🔥MAXチャレンジ🔥
+ベンチ ${w}kg 1回`;
+}
+
+// 日本人動画（埋め込みOK）
 let videoHTML = `
 <iframe width="100%" height="200"
 src="https://www.youtube.com/embed/gRVjAtPip0Y"
-allowfullscreen></iframe>
-
-<iframe width="100%" height="200"
-src="https://www.youtube.com/embed/IODxDxX7oi4"
 allowfullscreen></iframe>
 `;
 
