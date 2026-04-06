@@ -31,6 +31,12 @@
 <option value="cut">減量</option>
 </select>
 
+<select id="days" class="border p-1 w-full mb-2">
+<option value="3">週3回</option>
+<option value="4">週4回</option>
+<option value="5">週5回</option>
+</select>
+
 <select id="foodType" class="border p-1 w-full mb-2">
 <option value="random">ランダム</option>
 <option value="chicken">鶏</option>
@@ -43,6 +49,15 @@
 <button onclick="calc()" class="bg-blue-500 text-white w-full p-2 rounded">
 自動生成
 </button>
+
+<button onclick="record(true)" class="bg-green-500 text-white w-full p-2 mt-2 rounded">
+成功
+</button>
+
+<button onclick="record(false)" class="bg-red-500 text-white w-full p-2 mt-2 rounded">
+失敗
+</button>
+
 </div>
 
 <!-- 出力 -->
@@ -53,18 +68,23 @@
 <p id="protein"></p>
 <p id="menu"></p>
 <p id="train" class="mt-2 whitespace-pre-line"></p>
+<p id="log" class="mt-2 text-sm"></p>
 
 </div>
 
 </div>
 
 <script>
+
+let successCount = 0;
+
 function calc(){
 
 let sex = document.getElementById("sex").value;
 let w = document.getElementById("weight").value;
 let max = document.getElementById("max").value;
 let goal = document.getElementById("goal").value;
+let days = document.getElementById("days").value;
 let foodType = document.getElementById("foodType").value;
 
 if(!w || !max){
@@ -82,32 +102,32 @@ let cal = Math.round(base);
 let p = (sex === "male") ? w * 1.6 : w * 1.3;
 let pMeal = Math.round(p / 3);
 
-// 料理リスト（ここが進化ポイント）
+// 食事（料理＋内訳）
 let meals = {
-chicken: [
-{name:"鶏の照り焼き＋白米（1杯）", ratio:0.23},
-{name:"鶏むねの塩焼き＋白米（1杯）", ratio:0.23},
-{name:"親子丼", ratio:0.20}
+chicken:[
+{name:"親子丼", calc:(pMeal)=>"鶏もも"+Math.round(pMeal/0.2)+"g 卵"+Math.round(pMeal/6)+"個"},
+{name:"鶏の照り焼き", calc:(pMeal)=>"鶏もも"+Math.round(pMeal/0.23)+"g"},
+{name:"チキンステーキ", calc:(pMeal)=>"鶏もも"+Math.round(pMeal/0.23)+"g"}
 ],
-beef: [
-{name:"牛丼", ratio:0.20},
-{name:"牛ステーキ＋白米（1杯）", ratio:0.22},
-{name:"焼肉（牛）＋白米", ratio:0.20}
+beef:[
+{name:"牛丼", calc:(pMeal)=>"牛肉"+Math.round(pMeal/0.2)+"g"},
+{name:"ステーキ", calc:(pMeal)=>"牛肉"+Math.round(pMeal/0.22)+"g"},
+{name:"焼肉", calc:(pMeal)=>"牛肉"+Math.round(pMeal/0.2)+"g"}
 ],
-pork: [
-{name:"豚の生姜焼き＋白米", ratio:0.20},
-{name:"とんかつ", ratio:0.18},
-{name:"豚キムチ", ratio:0.20}
+pork:[
+{name:"生姜焼き", calc:(pMeal)=>"豚肉"+Math.round(pMeal/0.2)+"g"},
+{name:"とんかつ", calc:(pMeal)=>"豚肉"+Math.round(pMeal/0.18)+"g"},
+{name:"豚キムチ", calc:(pMeal)=>"豚肉"+Math.round(pMeal/0.2)+"g"}
 ],
-fish: [
-{name:"焼き鮭＋白米", ratio:0.22},
-{name:"サバの味噌煮＋白米", ratio:0.20},
-{name:"マグロ丼", ratio:0.24}
+fish:[
+{name:"焼き鮭", calc:(pMeal)=>"鮭"+Math.round(pMeal/0.22)+"g"},
+{name:"サバ味噌", calc:(pMeal)=>"サバ"+Math.round(pMeal/0.2)+"g"},
+{name:"マグロ丼", calc:(pMeal)=>"マグロ"+Math.round(pMeal/0.24)+"g"}
 ],
-egg: [
-{name:"オムライス", ratio:0.18},
-{name:"卵かけご飯", ratio:0.16},
-{name:"ゆで卵＋白米", ratio:6}
+egg:[
+{name:"オムライス", calc:(pMeal)=>"卵"+Math.round(pMeal/6)+"個"},
+{name:"卵かけご飯", calc:(pMeal)=>"卵"+Math.round(pMeal/6)+"個"},
+{name:"ゆで卵", calc:(pMeal)=>"卵"+Math.round(pMeal/6)+"個"}
 ]
 };
 
@@ -117,52 +137,40 @@ let keys = Object.keys(meals);
 foodType = keys[Math.floor(Math.random()*keys.length)];
 }
 
-// 料理ランダム
-let list = meals[foodType];
-let meal = list[Math.floor(Math.random()*list.length)];
+let meal = meals[foodType][Math.floor(Math.random()*meals[foodType].length)];
 
-let amount;
-if(foodType === "egg" && meal.ratio === 6){
-amount = Math.round(pMeal / 6) + "個";
-}else{
-amount = Math.round(pMeal / meal.ratio) + "g";
-}
+let menu = meal.name + "（" + meal.calc(pMeal) + "＋白米1杯）";
 
-let menu = meal.name + "（目安：" + amount + "）";
-
-// トレーニング（週4）
-let day1 = max * 0.9;
-let day2 = max * 0.8;
-let day3 = max * 0.7;
-let day4 = max * 0.85;
+// トレーニング
+let d1 = Math.round(max*0.9);
+let d2 = Math.round(max*0.8);
+let d3 = Math.round(max*0.7);
+let d4 = Math.round(max*0.85);
 
 let train =
-"週4回\n\n" +
-"Day1（高重量）\n" +
-Math.round(day1)+"kg 3回×3set / 3分\n補助：ディップス\n\n" +
-
-"Day2（中）\n" +
-Math.round(day2)+"kg 5回×4set / 2分\n補助：ダンベルプレス\n\n" +
-
-"Day3（軽）\n" +
-Math.round(day3)+"kg 8回×3set / 1〜2分\n補助：トライセプス\n\n" +
-
-"Day4（重）\n" +
-Math.round(day4)+"kg 3回×3set / 3分\n補助：ショルダープレス";
+"週"+days+"回\n\n"+
+"Day1\nベンチ "+d1+"kg 3回×3セット（インターバル3分）\n補助3種\n\n"+
+"Day2\nベンチ "+d2+"kg 5回×4セット（インターバル2〜3分）\n補助3種\n\n"+
+"Day3\nベンチ "+d3+"kg 8回×3セット（インターバル1〜2分）\n補助3種\n\n"+
+"Day4\nベンチ "+d4+"kg 3回×3セット（インターバル3分）\n補助3種";
 
 // 出力
-document.getElementById("cal").innerText =
-"カロリー：" + cal + " kcal";
-
-document.getElementById("protein").innerText =
-"タンパク質：" + Math.round(p) + "g（1食 約" + pMeal + "g）";
-
-document.getElementById("menu").innerText =
-"食事：" + menu;
-
-document.getElementById("train").innerText = train;
-
+document.getElementById("cal").innerText="カロリー："+cal+" kcal";
+document.getElementById("protein").innerText="タンパク質："+Math.round(p)+"g（1食 "+pMeal+"g）";
+document.getElementById("menu").innerText="食事："+menu;
+document.getElementById("train").innerText=train;
 }
+
+// 成功記録
+function record(success){
+if(success){
+successCount++;
+}else{
+successCount=0;
+}
+document.getElementById("log").innerText="連続成功："+successCount+"回";
+}
+
 </script>
 
 </body>
