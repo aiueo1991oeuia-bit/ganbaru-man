@@ -43,6 +43,13 @@
 <p id="meal"></p>
 <p id="menu" class="mt-2 whitespace-pre-line"></p>
 <p id="rest" class="text-sm text-gray-600 mt-2"></p>
+
+<!-- 👇追加 -->
+<p class="text-xs text-gray-500 mt-2">
+※各Stage終了後は1〜2日休息を推奨します。<br>
+疲労や筋肉の張りが強い場合は無理に行わず、休養も成長の一部です。
+</p>
+
 <p id="timer" class="text-xl font-bold text-center mt-4"></p>
 
 <div id="video" class="mt-4"></div>
@@ -56,7 +63,6 @@
 
 </div>
 
-<!-- 🔥 一番下に配置 -->
 <div class="mt-6">
 <button onclick="resetLog()" class="bg-red-600 text-white w-full p-3 rounded">
 ⚠️ ログを全削除
@@ -65,7 +71,7 @@
 
 <script>
 
-let stage = 0;
+let stage = 1;
 let maxWeight = 0;
 let timerInterval;
 
@@ -74,13 +80,12 @@ return Math.round(num/5)*5;
 }
 
 function start(){
-
 let w = Number(document.getElementById("weight").value);
 let sex = document.getElementById("sex").value;
 let goal = document.getElementById("goal").value;
 
 maxWeight = round5(Number(document.getElementById("max").value));
-stage = 0;
+stage = 1;
 
 let cal = (sex==="male") ? w*33 : w*30;
 if(goal==="bulk") cal+=300;
@@ -142,14 +147,14 @@ max:maxWeight
 
 localStorage.setItem("log",JSON.stringify(log));
 
-if(stage===4){
-if(success){ maxWeight+=5; stage=0; } else { stage=0; }
+if(stage===5){
+if(success){ maxWeight+=5; stage=1; } else { stage=1; }
 }else{
 if(success){stage++}else{stage--}
 }
 
-if(stage<0) stage=0;
-if(stage>4) stage=4;
+if(stage<1) stage=1;
+if(stage>5) stage=5;
 
 updateMenu();
 loadLog();
@@ -159,84 +164,61 @@ function updateMenu(){
 
 let w;
 
-if(stage===0) w=round5(maxWeight*0.65);
-if(stage===1) w=round5(maxWeight*0.75);
-if(stage===2) w=round5(maxWeight*0.85);
-if(stage===3) w=round5(maxWeight*0.92);
-if(stage===4) w=round5(maxWeight+5);
+if(stage===1) w=round5(maxWeight*0.65);
+if(stage===2) w=round5(maxWeight*0.75);
+if(stage===3) w=round5(maxWeight*0.85);
+if(stage===4) w=round5(maxWeight*0.92);
+if(stage===5) w=round5(maxWeight+5);
 
 let text="";
 
-if(stage===0){
-text=`Stage0
+if(stage===1){
+text=`Stage1
 ベンチ ${w}kg 8回×3（休憩2分）
 ・ダンベルプレス 20kg 10回×3（休憩2分）
 ・トライセプス 20kg 12回×3（休憩2分）`;
 }
 
-if(stage===1){
-text=`Stage1
+if(stage===2){
+text=`Stage2
 ベンチ ${w}kg 5回×4（休憩2分）
 ・インクラインダンベル 22kg 10回×3（休憩2分）
 ・ディップス 自重 10回×3（休憩2分）`;
 }
 
-if(stage===2){
-text=`Stage2
+if(stage===3){
+text=`Stage3
 ベンチ ${w}kg 3回×3（休憩3分）
 ・ディップス +10kg 8回×3（休憩3分）
 ・ダンベルプレス 25kg 8回×3（休憩3分）`;
 }
 
-if(stage===3){
-text=`Stage3
+if(stage===4){
+text=`Stage4
 ベンチ ${w}kg 2回×3（休憩3分）
 ・ディップス +15kg 6回×3（休憩3分）
 ・プレスダウン 30kg 10回×3（休憩3分）`;
 }
 
-if(stage===4){
-text=`🔥MAXチャレンジ🔥
+if(stage===5){
+text=`🔥Final Stage🔥
 ベンチ ${w}kg 1回（休憩3分）`;
 }
 
 document.getElementById("menu").innerText=text;
 
 document.getElementById("rest").innerText =
-(stage<=1)?"※軽め：週3〜4回OK":"※高強度：1〜2日休み";
-
-// 動画連動
-let videos={
-bench:{id:"W36C1YcI1MM",title:"ベンチプレス"},
-dumbbell:{id:"pctyhH_HYxc",title:"ダンベルプレス"},
-dips:{id:"EU5KqPW19I8",title:"ディップス"},
-triceps:{id:"RXrJXD76tSE",title:"トライセプス"}
-};
-
-let use=[];
-if(stage===0){use=[videos.bench,videos.dumbbell,videos.triceps];}
-if(stage===1){use=[videos.bench,videos.dumbbell,videos.dips];}
-if(stage>=2){use=[videos.bench,videos.dips,videos.triceps];}
-
-let html="";
-use.forEach(v=>{
-html+=`
-<p>${v.title}</p>
-<iframe width="100%" height="200"
-src="https://www.youtube.com/embed/${v.id}"
-allowfullscreen></iframe>`;
-});
-
-document.getElementById("video").innerHTML=html;
+(stage<=2)?"※軽め：週3〜4回OK":"※高強度：1〜2日休み";
 
 document.getElementById("status").innerText =
-"Stage："+stage+" / MAX："+maxWeight+"kg";
+"Stage："+(stage===5?"Final":stage)+" / MAX："+maxWeight+"kg";
+
 }
 
 function startTimer(){
 
 clearInterval(timerInterval);
-let seconds=(stage<=1)?120:180;
+let seconds=(stage<=2)?120:180;
 
 timerInterval=setInterval(()=>{
 let m=Math.floor(seconds/60);
