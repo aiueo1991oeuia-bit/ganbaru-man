@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ganbaru-log</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-4">
+
+<h1 class="text-2xl font-bold text-center mb-4">ganbaru-log</h1>
+
+<div class="grid gap-4">
+
+<!-- 栄養 -->
+<div class="bg-white p-4 rounded shadow">
+<h2 class="font-bold mb-2">栄養</h2>
+<p>体重：77kg / 年齢：35歳</p>
+<p>目標カロリー：2906 kcal</p>
+<p>P：139g / F：62g / C：448g</p>
+</div>
+
+<!-- 食事生成 -->
+<div class="bg-white p-4 rounded shadow">
+<h2 class="font-bold mb-2">食事生成</h2>
+
+<select id="protein" class="border p-1 w-full mb-2">
+<option>肉</option>
+<option>魚</option>
+<option>その他</option>
+</select>
+
+<select id="carb" class="border p-1 w-full mb-2">
+<option>白米</option>
+<option>玄米</option>
+<option>パン</option>
+<option>オートミール</option>
+</select>
+
+<input id="target" type="number" placeholder="目標タンパク質(g)" class="border p-1 w-full mb-2">
+
+<button onclick="generate()" class="bg-blue-500 text-white w-full p-2 rounded">
+生成
+</button>
+
+<p id="result" class="mt-2 font-bold"></p>
+</div>
+
+<!-- トレーニング -->
+<div class="bg-white p-4 rounded shadow">
+<h2 class="font-bold mb-2">トレーニング</h2>
+<ul class="text-sm">
+<li>Day1：90kg（高重量）</li>
+<li>Day2：80kg（中）</li>
+<li>Day3：65kg（軽）</li>
+<li>Day4：85kg（重）</li>
+</ul>
+</div>
+
+</div>
+
+<script>
+function generate() {
+let p = document.getElementById("protein").value;
+let c = document.getElementById("carb").value;
+let t = document.getElementById("target").value;
+
+if (!t) {
+document.getElementById("result").innerText = "数値入れて";
+return;
+}
+
+let result = "";
+
+if (p === "肉") {
+let g = Math.round(t / 0.23);
+result = "鶏むね肉 " + g + "g ＋ " + c + "（1杯） 約" + t + "gP";
+}
+else if (p === "魚") {
+let g = Math.round(t / 0.22);
+result = "鮭 " + g + "g ＋ " + c + "（1杯） 約" + t + "gP";
+}
+else {
+let n = Math.round(t / 6);
+result = "卵 " + n + "個 ＋ " + c + "（1杯） 約" + t + "gP";
+}
+
+document.getElementById("result").innerText = result;
+}
+</script>
+
+</body>
+</html>
