@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ganbaru-log</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-4">
+
+<h1 class="text-2xl font-bold text-center mb-4">ganbaru-log</h1>
+
+<div class="grid gap-4">
+
+<!-- 入力 -->
+<div class="bg-white p-4 rounded shadow">
+<h2 class="font-bold mb-2">入力</h2>
+
+<select id="sex" class="border p-1 w-full mb-2">
+<option value="male">男性</option>
+<option value="female">女性</option>
+</select>
+
+<input id="weight" type="number" placeholder="体重(kg)" class="border p-1 w-full mb-2">
+<input id="max" type="number" placeholder="ベンチMAX(kg)" class="border p-1 w-full mb-2">
+
+<select id="goal" class="border p-1 w-full mb-2">
+<option value="bulk">増量</option>
+<option value="maintain">維持</option>
+<option value="cut">減量</option>
+</select>
+
+<select id="foodType" class="border p-1 w-full mb-2">
+<option value="random">ランダム</option>
+<option value="chicken">鶏</option>
+<option value="beef">牛</option>
+<option value="pork">豚</option>
+<option value="fish">魚</option>
+<option value="egg">卵</option>
+</select>
+
+<button onclick="calc()" class="bg-blue-500 text-white w-full p-2 rounded">
+自動生成
+</button>
+</div>
+
+<!-- 出力 -->
+<div class="bg-white p-4 rounded shadow">
+<h2 class="font-bold mb-2">結果</h2>
+
+<p id="cal"></p>
+<p id="protein"></p>
+<p id="menu"></p>
+<p id="train" class="mt-2 whitespace-pre-line"></p>
+
+</div>
+
+</div>
+
+<script>
+function calc(){
+
+let sex = document.getElementById("sex").value;
+let w = document.getElementById("weight").value;
+let max = document.getElementById("max").value;
+let goal = document.getElementById("goal").value;
+let foodType = document.getElementById("foodType").value;
+
+if(!w || !max){
+alert("入力して");
+return;
+}
+
+// カロリー
+let base = (sex === "male") ? w * 33 : w * 30;
+if(goal === "bulk") base += 300;
+if(goal === "cut") base -= 300;
+let cal = Math.round(base);
+
+// タンパク質
+let p = (sex === "male") ? w * 1.6 : w * 1.3;
+let pMeal = Math.round(p / 3);
+
+// 料理リスト（ここが進化ポイント）
+let meals = {
+chicken: [
+{name:"鶏の照り焼き＋白米（1杯）", ratio:0.23},
+{name:"鶏むねの塩焼き＋白米（1杯）", ratio:0.23},
+{name:"親子丼", ratio:0.20}
+],
+beef: [
+{name:"牛丼", ratio:0.20},
+{name:"牛ステーキ＋白米（1杯）", ratio:0.22},
+{name:"焼肉（牛）＋白米", ratio:0.20}
+],
+pork: [
+{name:"豚の生姜焼き＋白米", ratio:0.20},
+{name:"とんかつ", ratio:0.18},
+{name:"豚キムチ", ratio:0.20}
+],
+fish: [
+{name:"焼き鮭＋白米", ratio:0.22},
+{name:"サバの味噌煮＋白米", ratio:0.20},
+{name:"マグロ丼", ratio:0.24}
+],
+egg: [
+{name:"オムライス", ratio:0.18},
+{name:"卵かけご飯", ratio:0.16},
+{name:"ゆで卵＋白米", ratio:6}
+]
+};
+
+// ランダムカテゴリ
+if(foodType === "random"){
+let keys = Object.keys(meals);
+foodType = keys[Math.floor(Math.random()*keys.length)];
+}
+
+// 料理ランダム
+let list = meals[foodType];
+let meal = list[Math.floor(Math.random()*list.length)];
+
+let amount;
+if(foodType === "egg" && meal.ratio === 6){
+amount = Math.round(pMeal / 6) + "個";
+}else{
+amount = Math.round(pMeal / meal.ratio) + "g";
+}
+
+let menu = meal.name + "（目安：" + amount + "）";
+
+// トレーニング（週4）
+let day1 = max * 0.9;
+let day2 = max * 0.8;
+let day3 = max * 0.7;
+let day4 = max * 0.85;
+
+let train =
+"週4回\n\n" +
+"Day1（高重量）\n" +
+Math.round(day1)+"kg 3回×3set / 3分\n補助：ディップス\n\n" +
+
+"Day2（中）\n" +
+Math.round(day2)+"kg 5回×4set / 2分\n補助：ダンベルプレス\n\n" +
+
+"Day3（軽）\n" +
+Math.round(day3)+"kg 8回×3set / 1〜2分\n補助：トライセプス\n\n" +
+
+"Day4（重）\n" +
+Math.round(day4)+"kg 3回×3set / 3分\n補助：ショルダープレス";
+
+// 出力
+document.getElementById("cal").innerText =
+"カロリー：" + cal + " kcal";
+
+document.getElementById("protein").innerText =
+"タンパク質：" + Math.round(p) + "g（1食 約" + pMeal + "g）";
+
+document.getElementById("menu").innerText =
+"食事：" + menu;
+
+document.getElementById("train").innerText = train;
+
+}
+</script>
+
+</body>
+</html>
