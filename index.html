@@ -42,10 +42,17 @@
 <p id="nutrition"></p>
 <p id="meal"></p>
 <p id="menu" class="mt-2 whitespace-pre-line"></p>
+<p id="rest" class="text-sm text-gray-600 mt-2"></p>
 <p id="timer" class="text-xl font-bold text-center mt-4"></p>
 
 <div id="video" class="mt-4"></div>
 
+</div>
+
+<!-- ログ表示 -->
+<div class="bg-white p-4 rounded shadow">
+<h2 class="font-bold mb-2">📊 トレーニングログ</h2>
+<ul id="logList" class="text-sm"></ul>
 </div>
 
 </div>
@@ -78,52 +85,28 @@ if(goal==="cut") cal-=300;
 let proteinDay = (sex==="male") ? w*1.6 : w*1.3;
 let proteinMeal = Math.round(w*0.4);
 
-// 🍚 米量調整
-let riceAmount, riceLabel, carb;
+// 米量
+let riceLabel, carb;
 
-if(goal==="cut"){
-riceAmount = 100;
-riceLabel = "0.7杯";
-carb = 37;
-}
-if(goal==="maintain"){
-riceAmount = 150;
-riceLabel = "1杯";
-carb = 55;
-}
-if(goal==="bulk"){
-riceAmount = 225;
-riceLabel = "1.5杯";
-carb = 80;
-}
+if(goal==="cut"){ riceLabel="0.7杯"; carb=37; }
+if(goal==="maintain"){ riceLabel="1杯"; carb=55; }
+if(goal==="bulk"){ riceLabel="1.5杯"; carb=80; }
 
 // 食事
 let meals = [
 ()=>{
 let meat = Math.round(proteinMeal/0.2);
-let protein_meat = Math.round(meat*0.2);
+let protein = Math.round(meat*0.2)+4;
 let fat = Math.round(meat*0.15);
-
-// 米
-let protein_rice = 4;
-
-// 合計
-let protein = protein_meat + protein_rice;
 let kcal = protein*4 + fat*9 + carb*4;
 
-return `親子丼（鶏もも肉${meat}g・卵2個 + 白米 ${riceLabel}）
+return `親子丼（鶏もも肉${meat}g + 白米 ${riceLabel}）
 タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;
 },
 ()=>{
 let meat = Math.round(proteinMeal/0.2);
-let protein_meat = Math.round(meat*0.2);
+let protein = Math.round(meat*0.2)+4;
 let fat = Math.round(meat*0.3);
-
-// 米
-let protein_rice = 4;
-
-// 合計
-let protein = protein_meat + protein_rice;
 let kcal = protein*4 + fat*9 + carb*4;
 
 return `牛丼（牛バラ肉${meat}g + 白米 ${riceLabel}）
@@ -131,27 +114,32 @@ return `牛丼（牛バラ肉${meat}g + 白米 ${riceLabel}）
 }
 ];
 
-let meal = meals[Math.floor(Math.random()*meals.length)]();
+document.getElementById("meal").innerText =
+"食事例（1食分）：\n"+meals[Math.floor(Math.random()*2)]();
 
 document.getElementById("nutrition").innerText =
 "1日の目安：タンパク質 "+Math.round(proteinDay)+"g / カロリー "+Math.round(cal)+"kcal";
 
-document.getElementById("meal").innerText =
-"1食例：\n"+meal;
-
 updateMenu();
+loadLog();
 }
 
 function record(success){
 
+let result = success ? "成功" : "失敗";
+
+// ログ保存
+let log = JSON.parse(localStorage.getItem("log")||"[]");
+log.unshift({
+date:new Date().toLocaleDateString(),
+stage,
+result,
+max:maxWeight
+});
+localStorage.setItem("log",JSON.stringify(log));
+
 if(stage===4){
-if(success){
-maxWeight+=5;
-alert("MAX更新🔥 "+maxWeight+"kg");
-stage=0;
-}else{
-stage=0;
-}
+if(success){ maxWeight+=5; stage=0; } else { stage=0; }
 }else{
 if(success){stage++}else{stage--}
 }
@@ -160,6 +148,7 @@ if(stage<0) stage=0;
 if(stage>4) stage=4;
 
 updateMenu();
+loadLog();
 }
 
 function updateMenu(){
@@ -172,77 +161,74 @@ if(stage===2) w=round5(maxWeight*0.85);
 if(stage===3) w=round5(maxWeight*0.92);
 if(stage===4) w=round5(maxWeight+5);
 
+let restLight="2分", restHeavy="3分";
+
 let text="";
 
 if(stage===0){
 text=`Stage0
-ベンチ ${w}kg 8回×3（休憩2分）
-・ダンベルプレス 20kg 10回×3（休憩2分）
-・トライセプス 20kg 12回×3（休憩2分）`;
+ベンチ ${w}kg 8回×3（休憩${restLight}）
+・ダンベルプレス 20kg 10回×3（休憩${restLight}）
+・トライセプス 20kg 12回×3（休憩${restLight}）`;
 }
 
 if(stage===1){
 text=`Stage1
-ベンチ ${w}kg 5回×4（休憩2分）
-・インクラインダンベル 22kg 10回×3（休憩2分）
-・ディップス 自重 10回×3（休憩2分）`;
+ベンチ ${w}kg 5回×4（休憩${restLight}）
+・インクラインダンベル 22kg 10回×3（休憩${restLight}）
+・ディップス 自重 10回×3（休憩${restLight}）`;
 }
 
-if(stage===2){
-text=`Stage2
-ベンチ ${w}kg 3回×3（休憩3分）
-・ディップス +10kg 8回×3（休憩3分）
-・ダンベルプレス 25kg 8回×3（休憩3分）`;
+if(stage>=2){
+text=`Stage${stage}
+ベンチ ${w}kg （高強度）
+・補助種目2種
+※休憩${restHeavy}`;
 }
 
-if(stage===3){
-text=`Stage3
-ベンチ ${w}kg 2回×3（休憩3分）
-・ディップス +15kg 6回×3（休憩3分）
-・プレスダウン 30kg 10回×3（休憩3分）`;
-}
+document.getElementById("menu").innerText=text;
 
-if(stage===4){
-text=`🔥MAXチャレンジ🔥
-ベンチ ${w}kg 1回（休憩3分）`;
-}
+// 休養
+document.getElementById("rest").innerText =
+(stage<=1) ? "※軽め：週3〜4回OK" : "※高強度：1〜2日休み";
 
-// 動画
-let videoHTML = `
+// 日本人動画
+document.getElementById("video").innerHTML = `
 <iframe width="100%" height="200"
-src="https://www.youtube.com/embed/7X1pKp0n8nE"></iframe>
+src="https://www.youtube.com/embed/9GQ3vQJY5Ww"></iframe>
 `;
 
 document.getElementById("status").innerText =
 "Stage："+stage+" / MAX："+maxWeight+"kg";
-
-document.getElementById("menu").innerText=text;
-document.getElementById("video").innerHTML=videoHTML;
-
 }
 
 function startTimer(){
 
 clearInterval(timerInterval);
-
-let seconds = (stage<=1) ? 120 : 180;
+let seconds = (stage<=1)?120:180;
 
 timerInterval = setInterval(()=>{
-let min = Math.floor(seconds/60);
-let sec = seconds%60;
-
-document.getElementById("timer").innerText =
-`休憩：${min}:${sec.toString().padStart(2,'0')}`;
-
+let m=Math.floor(seconds/60);
+let s=seconds%60;
+document.getElementById("timer").innerText=`休憩：${m}:${s.toString().padStart(2,'0')}`;
 seconds--;
-
 if(seconds<0){
 clearInterval(timerInterval);
-document.getElementById("timer").innerText = "スタート🔥";
+document.getElementById("timer").innerText="スタート🔥";
+}
+},1000);
 }
 
-},1000);
+function loadLog(){
 
+let log = JSON.parse(localStorage.getItem("log")||"[]");
+let html = "";
+
+log.forEach(l=>{
+html += `<li>${l.date}｜Stage${l.stage}｜${l.result}｜MAX${l.max}kg</li>`;
+});
+
+document.getElementById("logList").innerHTML = html;
 }
 
 </script>
