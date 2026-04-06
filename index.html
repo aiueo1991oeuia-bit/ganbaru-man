@@ -1,1 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>食事生成</title>
+  <style>
+    /* スマホで見やすくするための設定 */
+    body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+    select, input, button { 
+      display: block; width: 100%; max-width: 300px; 
+      margin-bottom: 15px; padding: 12px; font-size: 16px; 
+    }
+    button { background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    #result { 
+      margin-top: 20px; padding: 15px; background: #f0f8ff; 
+      border-radius: 5px; font-weight: bold; color: #333;
+    }
+  </style>
+</head>
+<body>
+
+<h2>食事メニュー生成</h2>
+
+<label>タンパク質源</label>
+<select id="protein">
+  <option value="肉">肉（鶏むね想定）</option>
+  <option value="魚">魚（鮭想定）</option>
+  <option value="その他">その他（卵想定）</option>
+</select>
+
+<label>炭水化物</label>
+<select id="carb">
+  <option value="白米">白米</option>
+  <option value="玄米">玄米</option>
+  <option value="パン">パン</option>
+  <option value="オートミール">オートミール</option>
+</select>
+
+<label>目標タンパク質量 (g)</label>
+<input type="number" id="target" placeholder="目標タンパク質" value="123">
+
+<button onclick="generate()">メニューを生成</button>
+
+<div id="result">ここに結果が表示されます</div>
+
+<script>
+function generate() {
+  let p = document.getElementById("protein").value;
+  let c = document.getElementById("carb").value;
+  let t = document.getElementById("target").value;
+
+  // 入力がない場合のガード
+  if (!t || t <= 0) {
+    document.getElementById("result").innerText = "目標数値を入力してください。";
+    return;
+  }
+
+  let result = "";
+
+  if (p === "肉") {
+    let g = Math.round(t / 0.23);
+    result = `🔥 鶏むね肉を【${g}g】食べましょう！\n＋${c}（1杯）で約${t}gのタンパク質が摂取できます。`;
+  } else if (p === "魚") {
+    let g = Math.round(t / 0.22);
+    result = `🐟 鮭を【${g}g】食べましょう！\n＋${c}（1杯）で約${t}gのタンパク質が摂取できます。`;
+  } else {
+    let n = Math.round(t / 6);
+    result = `🥚 卵を【${n}個】食べましょう！\n＋${c}（1杯）で約${t}gのタンパク質が摂取できます。`;
+  }
+
+  document.getElementById("result").innerText = result;
+}
+</script>
+
+</body>
+</html>
 
