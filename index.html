@@ -1,311 +1,394 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ganbaru-log</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Training Menu</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+      background: #f7f8fb;
+      color: #222;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 1.3rem;
+    }
+
+    #menu {
+      white-space: pre-line;
+      font-size: 1rem;
+    }
+
+    .video-note {
+      margin: 0 0 14px;
+      color: #555;
+      font-size: 0.95rem;
+    }
+
+    #video.video-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(260px, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .video-card {
+      background: #fafafa;
+      border: 1px solid #e8e8e8;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .video-head {
+      padding: 10px 12px 6px;
+      font-weight: 700;
+      font-size: 0.98rem;
+    }
+
+    .video-sub {
+      padding: 0 12px 10px;
+      color: #666;
+      font-size: 0.86rem;
+    }
+
+    .video-card iframe {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 0;
+      display: block;
+      background: #000;
+    }
+
+    .video-caption {
+      padding: 10px 12px 14px;
+      font-size: 0.9rem;
+      color: #444;
+    }
+
+    .meal-box {
+      background: #fafafa;
+      border: 1px solid #ececec;
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .meal-box strong {
+      display: inline-block;
+      min-width: 110px;
+    }
+
+    .macro-total {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #ddd;
+      font-weight: 700;
+    }
+
+    @media (max-width: 960px) {
+      #video.video-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
+<body>
+  <section class="card">
+    <h2>本日のメニュー</h2>
+    <div id="menu"></div>
+  </section>
 
-<body class="bg-gray-100 p-4">
+  <section class="card">
+    <h2>フォーム解説動画</h2>
+    <p class="video-note">
+      下の3本は、現在のStageで表示されている3種目それぞれに対応した日本語のフォーム解説動画です。
+      各カードに「どの種目の正しいフォーム解説か」を明記しています。
+    </p>
+    <div id="video" class="video-grid"></div>
+  </section>
 
-<h1 class="text-2xl font-bold text-center mb-4">ganbaru-log</h1>
+  <section class="card">
+    <h2>親子丼の栄養計算</h2>
+    <div id="meal"></div>
+  </section>
 
-<div class="grid gap-4">
+  <script>
+    /*
+      Stageごとのメニュー文。
+      既存コードで text を別途作っている場合は、この定義は不要で、
+      updateMenu() 内の text 生成部分だけ既存のものを使ってください。
+    */
+    const MENU_TEXT_BY_STAGE = {
+      0: `1. ベンチプレス
+2. ダンベルプレス
+3. トライセプス`,
+      1: `1. インクラインダンベルプレス
+2. ディップス
+3. ケーブルプレスダウン`,
+      2: `1. ベンチプレス
+2. インクラインダンベルプレス
+3. ナローベンチプレス`
+    };
 
-<div class="bg-white p-4 rounded shadow">
+    /*
+      ユーザー指定のStage別メインID
+      Stage0 – W36C1YcI1MM
+      Stage1 – pctyhH_HYxc
+      Stage2 – q2lbpPFzS-M
+      Stage3 – EU5KqPW19I8
+      Stage4 – RXrJXD76tSE
+    */
+    const STAGE_PRIMARY_VIDEO = {
+      0: "W36C1YcI1MM",
+      1: "pctyhH_HYxc",
+      2: "q2lbpPFzS-M",
+      3: "EU5KqPW19I8",
+      4: "RXrJXD76tSE"
+    };
 
-<select id="sex" class="border p-1 w-full mb-2">
-<option value="male">男性</option>
-<option value="female">女性</option>
-</select>
+    /*
+      種目ごとの基本動画マップ
+      取得できている種目は直接マップし、
+      それ以外は Stage のフォールバックIDを使います。
+    */
+    const EXERCISE_VIDEO_MAP = {
+      "ベンチプレス": {
+        id: "W36C1YcI1MM",
+        trainer: "今古賀翔",
+        title: "ベンチプレス"
+      },
+      "ダンベルプレス": {
+        id: "pctyhH_HYxc",
+        trainer: "山澤礼明",
+        title: "ダンベルプレス"
+      },
+      "トライセプス": {
+        id: "wdVXHWTfC18",
+        trainer: "筋トレダンジョン",
+        title: "トライセプス / プレスダウン"
+      },
+      "ケーブルプレスダウン": {
+        id: "wdVXHWTfC18",
+        trainer: "筋トレダンジョン",
+        title: "ケーブルプレスダウン"
+      },
+      "インクラインダンベルプレス": {
+        id: "QAFLJGTQZDo",
+        trainer: "katochan33",
+        title: "インクラインダンベルプレス"
+      },
+      "ナローベンチプレス": {
+        id: "5w3C4I1xMpw",
+        trainer: "東京筋トレchannel",
+        title: "ナローベンチプレス"
+      }
+    };
 
-<input id="weight" type="number" placeholder="体重(kg)" class="border p-1 w-full mb-2">
-<input id="max" type="number" placeholder="ベンチMAX(kg)" class="border p-1 w-full mb-2">
+    /*
+      Stageごとの3本構成フォールバック。
+      先頭は必ずユーザー指定のStage IDを優先。
+      残り2本は該当種目があれば種目別ID、なければここを使用。
+    */
+    const STAGE_VIDEO_FALLBACKS = {
+      0: ["W36C1YcI1MM", "pctyhH_HYxc", "wdVXHWTfC18"],
+      1: ["pctyhH_HYxc", "q2lbpPFzS-M", "wdVXHWTfC18"],
+      2: ["q2lbpPFzS-M", "QAFLJGTQZDo", "5w3C4I1xMpw"],
+      3: ["EU5KqPW19I8", "QAFLJGTQZDo", "5w3C4I1xMpw"],
+      4: ["RXrJXD76tSE", "QAFLJGTQZDo", "5w3C4I1xMpw"]
+    };
 
-<select id="goal" class="border p-1 w-full mb-2">
-<option value="bulk">増量</option>
-<option value="maintain">維持</option>
-<option value="cut">減量</option>
-</select>
-
-<button onclick="start()" class="bg-blue-500 text-white w-full p-2 rounded">開始</button>
-<button onclick="record(true)" class="bg-green-500 text-white w-full p-2 mt-2 rounded">成功</button>
-<button onclick="record(false)" class="bg-red-500 text-white w-full p-2 mt-2 rounded">失敗</button>
-<button onclick="startTimer()" class="bg-purple-500 text-white w-full p-2 mt-2 rounded">休憩スタート</button>
-
-</div>
-
-<div class="bg-white p-4 rounded shadow">
-
-<p id="status"></p>
-<p id="nutrition"></p>
-<p id="meal"></p>
-<p id="menu" class="mt-2 whitespace-pre-line"></p>
-<p id="rest" class="text-sm text-gray-600 mt-2"></p>
-<p id="timer" class="text-xl font-bold text-center mt-4"></p>
-
-<div id="video" class="mt-4"></div>
-
-</div>
-
-<!-- ログ表示 -->
-<div class="bg-white p-4 rounded shadow">
-<h2 class="font-bold mb-2">📊 トレーニングログ</h2>
-<ul id="logList" class="text-sm"></ul>
-</div>
-
-</div>
-
-<script>
-
-let stage = 0;
-let maxWeight = 0;
-let timerInterval;
-
-function round5(num){
-  return Math.round(num/5)*5;
-}
-
-function start(){
-
-  let w = Number(document.getElementById("weight").value);
-  let sex = document.getElementById("sex").value;
-  let goal = document.getElementById("goal").value;
-
-  maxWeight = round5(Number(document.getElementById("max").value));
-  stage = 0;
-
-  // カロリー
-  let cal = (sex==="male") ? w*33 : w*30;
-  if(goal==="bulk") cal += 300;
-  if(goal==="cut") cal -= 300;
-
-  // タンパク質
-  let proteinDay = (sex==="male") ? w*1.6 : w*1.3;
-  let proteinMeal = Math.round(w*0.4);
-
-  // 米量
-  let riceLabel = "";
-  let carb = 0;
-
-  if(goal==="cut"){
-    riceLabel = "0.7杯";
-    carb = 37;
-  }
-  if(goal==="maintain"){
-    riceLabel = "1杯";
-    carb = 55;
-  }
-  if(goal==="bulk"){
-    riceLabel = "1.5杯";
-    carb = 80;
-  }
-
-  // 卵数（親子丼用）
-  // 減量・維持は1個、増量は2個にして栄養計算へ反映
-  const eggCount = (goal === "bulk") ? 2 : 1;
-  const eggProtein = eggCount * 6; // 1個あたり約6g
-  const eggFat = eggCount * 5;     // 1個あたり脂質約5g
-
-  // 食事
-  let meals = [
-    () => {
-      // 親子丼：卵分のタンパク質を引いた残りを鶏ももで補う
-      let meat = Math.max(80, Math.round((proteinMeal - eggProtein) / 0.2));
-      let chickenProtein = Math.round(meat * 0.2);
-      let chickenFat = Math.round(meat * 0.15);
-
-      let protein = chickenProtein + eggProtein;
-      let fat = chickenFat + eggFat;
-      let kcal = protein*4 + fat*9 + carb*4;
-
-      return `親子丼（鶏もも肉${meat}g + 卵${eggCount}個 + 白米 ${riceLabel}）
-タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;
-    },
-    () => {
-      let meat = Math.round(proteinMeal / 0.2);
-      let protein = Math.round(meat * 0.2);
-      let fat = Math.round(meat * 0.3);
-      let kcal = protein*4 + fat*9 + carb*4;
-
-      return `牛丼（牛バラ肉${meat}g + 白米 ${riceLabel}）
-タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;
+    function normalizeStage(stage) {
+      if (stage <= 0) return 0;
+      if (stage === 1) return 1;
+      return Math.min(stage, 4);
     }
-  ];
 
-  document.getElementById("meal").innerText =
-    "食事例（1食分）：\n" + meals[Math.floor(Math.random()*2)]();
-
-  document.getElementById("nutrition").innerText =
-    "1日の目安：タンパク質 " + Math.round(proteinDay) + "g / カロリー " + Math.round(cal) + "kcal";
-
-  updateMenu();
-  loadLog();
-}
-
-function record(success){
-
-  let result = success ? "成功" : "失敗";
-
-  // ログ保存
-  let log = JSON.parse(localStorage.getItem("log") || "[]");
-  log.unshift({
-    date: new Date().toLocaleDateString(),
-    stage,
-    result,
-    max: maxWeight
-  });
-  localStorage.setItem("log", JSON.stringify(log));
-
-  if(stage===4){
-    if(success){
-      maxWeight += 5;
-      stage = 0;
-    } else {
-      stage = 0;
+    function getMenuTextByStage(stage) {
+      if (stage === 0) return MENU_TEXT_BY_STAGE[0];
+      if (stage === 1) return MENU_TEXT_BY_STAGE[1];
+      return MENU_TEXT_BY_STAGE[2]; // Stage2以上
     }
-  } else {
-    if(success){
-      stage++;
-    } else {
-      stage--;
+
+    // text 変数から3種目を抽出
+    function extractExercisesFromText(text) {
+      const candidates = [
+        "ベンチプレス",
+        "ダンベルプレス",
+        "トライセプス",
+        "インクラインダンベルプレス",
+        "ディップス",
+        "ケーブルプレスダウン",
+        "ナローベンチプレス"
+      ];
+
+      const found = candidates
+        .map(name => ({ name, index: text.indexOf(name) }))
+        .filter(item => item.index !== -1)
+        .sort((a, b) => a.index - b.index)
+        .map(item => item.name);
+
+      if (found.length >= 3) return found.slice(0, 3);
+
+      // フォールバック: 行単位で抽出
+      return text
+        .split(/\n|<br\s*\/?>/i)
+        .map(line => line.replace(/^\s*[\d\-・•.]+\s*/, "").trim())
+        .filter(Boolean)
+        .slice(0, 3);
     }
-  }
 
-  if(stage < 0) stage = 0;
-  if(stage > 4) stage = 4;
+    function buildVideosForStage(stage, exercises) {
+      const stageKey = normalizeStage(stage);
+      const fallbackSet = STAGE_VIDEO_FALLBACKS[stageKey] || STAGE_VIDEO_FALLBACKS[2];
 
-  updateMenu();
-  loadLog();
-}
+      return exercises.map((exercise, index) => {
+        const mapped = EXERCISE_VIDEO_MAP[exercise];
 
-function updateMenu(){
+        // 先頭動画は Stage指定ID を優先、それ以外は種目マップ優先
+        let videoId;
+        if (index === 0) {
+          videoId = STAGE_PRIMARY_VIDEO[stageKey] || mapped?.id || fallbackSet[index];
+        } else {
+          videoId = mapped?.id || fallbackSet[index] || STAGE_PRIMARY_VIDEO[stageKey];
+        }
 
-  let w;
-
-  if(stage===0) w = round5(maxWeight*0.65);
-  if(stage===1) w = round5(maxWeight*0.75);
-  if(stage===2) w = round5(maxWeight*0.85);
-  if(stage===3) w = round5(maxWeight*0.92);
-  if(stage===4) w = round5(maxWeight+5);
-
-  let restLight = "2分";
-  let restHeavy = "3分";
-
-  let text = "";
-
-  if(stage===0){
-    text = `Stage0
-ベンチ ${w}kg 8回×3（休憩${restLight}）
-・ダンベルプレス 20kg 10回×3（休憩${restLight}）
-・トライセプス 20kg 12回×3（休憩${restLight}）`;
-  }
-
-  if(stage===1){
-    text = `Stage1
-ベンチ ${w}kg 5回×4（休憩${restLight}）
-・インクラインダンベル 22kg 10回×3（休憩${restLight}）
-・ディップス 自重 10回×3（休憩${restLight}）`;
-  }
-
-  if(stage>=2){
-    text = `Stage${stage}
-ベンチ ${w}kg （高強度）
-・補助種目2種
-※休憩${restHeavy}`;
-  }
-
-  document.getElementById("menu").innerText = text;
-
-  // 休養
-  document.getElementById("rest").innerText =
-    (stage <= 1) ? "※軽め：週3〜4回OK" : "※高強度：1〜2日休み";
-
-  // Stageごとの日本人解説動画
-  const stageVideos = {
-    0: {
-      id: "W36C1YcI1MM",
-      title: "Sho系・ベンチプレス基礎フォーム解説"
-    },
-    1: {
-      id: "pctyhH_HYxc",
-      title: "山澤礼明・ダンベルプレスの効かせ方"
-    },
-    2: {
-      id: "q2lbpPFzS-M",
-      title: "芳賀セブン・ベンチ重量を伸ばす3つのポイント"
-    },
-    3: {
-      id: "EU5KqPW19I8",
-      title: "芳賀セブン・高重量で崩れやすいフォーム注意点"
-    },
-    4: {
-      id: "RXrJXD76tSE",
-      title: "芳賀セブン・重量を追う種目と追わない種目"
+        return {
+          exercise,
+          id: videoId,
+          trainer: mapped?.trainer || "日本人フィットネスYouTuber",
+          title: mapped?.title || exercise
+        };
+      });
     }
-  };
 
-  const currentVideo = stageVideos[stage] || stageVideos[0];
+    function renderVideos(stage, exercises) {
+      const videoEl = document.getElementById("video");
+      const videos = buildVideosForStage(stage, exercises);
 
-  document.getElementById("video").innerHTML = `
-    <div class="border rounded p-3 bg-gray-50">
-      <p class="text-sm font-bold mb-2">🎥 おすすめ解説動画</p>
-      <p class="text-sm text-gray-700 mb-2">${currentVideo.title}</p>
-      <iframe
-        width="100%"
-        height="220"
-        src="https://www.youtube.com/embed/${currentVideo.id}"
-        title="${currentVideo.title}"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen
-        referrerpolicy="strict-origin-when-cross-origin">
-      </iframe>
-      <a
-        href="https://www.youtube.com/watch?v=${currentVideo.id}"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-blue-600 text-sm underline inline-block mt-2">
-        YouTubeで開く
-      </a>
-    </div>
-  `;
-
-  document.getElementById("status").innerText =
-    "Stage：" + stage + " / MAX：" + maxWeight + "kg";
-}
-
-function startTimer(){
-
-  clearInterval(timerInterval);
-  let seconds = (stage <= 1) ? 120 : 180;
-
-  timerInterval = setInterval(() => {
-    let m = Math.floor(seconds/60);
-    let s = seconds%60;
-    document.getElementById("timer").innerText = `休憩：${m}:${s.toString().padStart(2,'0')}`;
-    seconds--;
-    if(seconds < 0){
-      clearInterval(timerInterval);
-      document.getElementById("timer").innerText = "スタート🔥";
+      videoEl.innerHTML = videos.map(video => `
+        <article class="video-card">
+          <div class="video-head">${video.exercise}</div>
+          <div class="video-sub">${video.trainer} によるフォーム解説</div>
+          <iframe
+            src="https://www.youtube.com/embed/${video.id}"
+            title="${video.exercise} の正しいフォーム解説動画"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
+          <div class="video-caption">
+            この動画は <strong>${video.exercise}</strong> の正しいフォームを確認するための解説枠です。
+          </div>
+        </article>
+      `).join("");
     }
-  }, 1000);
-}
 
-function loadLog(){
+    function round1(num) {
+      return Math.round(num * 10) / 10;
+    }
 
-  let log = JSON.parse(localStorage.getItem("log") || "[]");
-  let html = "";
+    function scaleMacro(base, factor) {
+      return {
+        p: base.p * factor,
+        f: base.f * factor,
+        c: base.c * factor,
+        kcal: base.kcal * factor
+      };
+    }
 
-  log.forEach(l => {
-    html += `<li>${l.date}｜Stage${l.stage}｜${l.result}｜MAX${l.max}kg</li>`;
-  });
+    function addMacro(...items) {
+      return items.reduce((acc, cur) => ({
+        p: acc.p + cur.p,
+        f: acc.f + cur.f,
+        c: acc.c + cur.c,
+        kcal: acc.kcal + cur.kcal
+      }), { p: 0, f: 0, c: 0, kcal: 0 });
+    }
 
-  document.getElementById("logList").innerHTML = html;
-}
+    /*
+      親子丼の栄養計算
+      - 卵 1〜2個 を追加
+      - 卵1個あたり: P6g / F5g / C0.2g / 72kcal
+      - bulk は 2個、それ以外は 1個
+    */
+    function meals(goal = "maintain") {
+      const mealEl = document.getElementById("meal");
 
-</script>
+      // 例: 目的別の分量
+      const riceG = goal === "bulk" ? 250 : goal === "cut" ? 180 : 220;
+      const chickenG = goal === "bulk" ? 180 : goal === "cut" ? 120 : 150;
+      const onionG = 60;
+      const sauceG = 30;
+      const eggCount = goal === "bulk" ? 2 : 1;
 
+      // 100gあたりの簡易栄養値
+      const rice =    { p: 2.5,  f: 0.3, c: 37.1, kcal: 156 }; // 炊飯後ごはん
+      const chicken = { p: 23.3, f: 1.9, c: 0.0,  kcal: 108 }; // 鶏むね肉(皮なし)
+      const onion =   { p: 1.0,  f: 0.1, c: 9.3,  kcal: 37  }; // 玉ねぎ
+      const sauce =   { p: 1.3,  f: 0.0, c: 18.5, kcal: 75  }; // たれ簡易値
+      const eggOne =  { p: 6.0,  f: 5.0, c: 0.2,  kcal: 72  }; // 卵1個
+
+      const riceMacro = scaleMacro(rice, riceG / 100);
+      const chickenMacro = scaleMacro(chicken, chickenG / 100);
+      const onionMacro = scaleMacro(onion, onionG / 100);
+      const sauceMacro = scaleMacro(sauce, sauceG / 100);
+      const eggMacro = scaleMacro(eggOne, eggCount);
+
+      const total = addMacro(riceMacro, chickenMacro, onionMacro, sauceMacro, eggMacro);
+
+      mealEl.innerHTML = `
+        <div class="meal-box">
+          <div><strong>材料</strong>ごはん ${riceG}g / 鶏むね肉 ${chickenG}g / 玉ねぎ ${onionG}g / たれ ${sauceG}g / 卵 ${eggCount}個</div>
+          <div><strong>卵の加算分</strong>P ${round1(eggMacro.p)}g / F ${round1(eggMacro.f)}g / C ${round1(eggMacro.c)}g / ${round1(eggMacro.kcal)}kcal</div>
+          <div class="macro-total">
+            合計: P ${round1(total.p)}g / F ${round1(total.f)}g / C ${round1(total.c)}g / ${round1(total.kcal)}kcal
+          </div>
+        </div>
+      `;
+    }
+
+    /*
+      既存の updateMenu() をこの形に置換
+      stage: 0,1,2,3,4...
+      goal : "cut" | "maintain" | "bulk"
+    */
+    function updateMenu(stage = 0, goal = "maintain") {
+      // 既存ロジックがある場合は text だけそのまま使ってOK
+      const text = getMenuTextByStage(stage);
+
+      document.getElementById("menu").textContent = text;
+
+      // text から3種目抽出
+      const exercises = extractExercisesFromText(text);
+
+      // 種目ごとの動画を3つ横並び表示
+      renderVideos(stage, exercises);
+
+      // 食事計算更新
+      meals(goal);
+    }
+
+    // 初期表示
+    updateMenu(0, "maintain");
+
+    /*
+      例:
+      updateMenu(1, "cut");
+      updateMenu(2, "bulk");
+      updateMenu(3, "maintain");
+      updateMenu(4, "bulk");
+    */
+  </script>
 </body>
 </html>
