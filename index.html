@@ -105,29 +105,52 @@ const eggCount = (goal==="bulk") ? 2 : 1;
 const eggProtein = eggCount*6;
 const eggFat = eggCount*5;
 
+// 🔥 食事ランダム（強化版）
 let meals = [
-()=>{
-let meat = Math.max(80, Math.round((proteinMeal-eggProtein)/0.2));
-let protein = Math.round(meat*0.2)+eggProtein;
-let fat = Math.round(meat*0.15)+eggFat;
-let kcal = protein*4 + fat*9 + carb*4;
 
+()=>{let meat=Math.max(80,Math.round((proteinMeal-eggProtein)/0.2));let protein=Math.round(meat*0.2)+eggProtein;let fat=Math.round(meat*0.15)+eggFat;let kcal=protein*4+fat*9+carb*4;
 return `親子丼（鶏もも肉${meat}g + 卵${eggCount}個 + 白米 ${riceLabel}）
-タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;
-},
-()=>{
-let meat = Math.round(proteinMeal/0.2);
-let protein = Math.round(meat*0.2);
-let fat = Math.round(meat*0.3);
-let kcal = protein*4 + fat*9 + carb*4;
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;},
 
+()=>{let meat=Math.round(proteinMeal/0.2);let protein=Math.round(meat*0.2);let fat=Math.round(meat*0.3);let kcal=protein*4+fat*9+carb*4;
 return `牛丼（牛バラ肉${meat}g + 白米 ${riceLabel}）
-タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;
-}
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;},
+
+()=>{let meat=Math.round(proteinMeal/0.18);let protein=Math.round(meat*0.18);let fat=Math.round(meat*0.35);let kcal=protein*4+fat*9+carb*4;
+return `豚丼（豚バラ肉${meat}g + 白米 ${riceLabel}）
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;},
+
+()=>{let meat=Math.round(proteinMeal/0.2);let protein=Math.round(meat*0.2);let fat=Math.round(meat*0.2);let kcal=protein*4+fat*9+carb*4;
+return `鶏照り焼き丼（鶏もも肉${meat}g + 白米 ${riceLabel}）
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;},
+
+()=>{let fish=Math.round(proteinMeal/0.22);let protein=Math.round(fish*0.22);let fat=Math.round(fish*0.12);let kcal=protein*4+fat*9+carb*4;
+return `鮭定食（焼き鮭${fish}g + 白米 ${riceLabel}）
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;},
+
+()=>{let fish=Math.round(proteinMeal/0.2);let protein=Math.round(fish*0.2);let fat=Math.round(fish*0.25);let kcal=protein*4+fat*9+carb*4;
+return `サバ定食（焼きサバ${fish}g + 白米 ${riceLabel}）
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;},
+
+()=>{let meat=Math.round(proteinMeal/0.22);let protein=Math.round(meat*0.22);let fat=Math.round(meat*0.25);let kcal=protein*4+fat*9+carb*4;
+return `ステーキ定食（牛肉${meat}g + 白米 ${riceLabel}）
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;},
+
+()=>{let meat=Math.round(proteinMeal/0.18);let protein=Math.round(meat*0.18);let fat=Math.round(meat*0.3);let kcal=protein*4+fat*9+carb*4;
+return `ハンバーグ定食（合挽肉${meat}g + 白米 ${riceLabel}）
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;},
+
+()=>{let meat=Math.round(proteinMeal/0.18);let protein=Math.round(meat*0.18);let fat=Math.round(meat*0.35);let kcal=protein*4+fat*9+carb*4;
+return `唐揚げ定食（鶏もも肉${meat}g + 白米 ${riceLabel}）
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;},
+
+()=>{let fish=Math.round(proteinMeal/0.25);let protein=Math.round(fish*0.25);let fat=Math.round(fish*0.1);let kcal=protein*4+fat*9+carb*4;
+return `ツナ丼（マグロ${fish}g + 白米 ${riceLabel}）
+タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;}
 ];
 
 document.getElementById("meal").innerText =
-"食事例（1食分）：\n"+meals[Math.floor(Math.random()*2)]();
+"食事例（1食分）：\n"+meals[Math.floor(Math.random()*meals.length)]();
 
 document.getElementById("nutrition").innerText =
 "1日の目安：タンパク質 "+Math.round(proteinDay)+"g / カロリー "+Math.round(cal)+"kcal";
@@ -212,7 +235,7 @@ document.getElementById("menu").innerText=text;
 document.getElementById("rest").innerText =
 (stage<=2)?"※軽め：週3〜4回OK":"※高強度：1〜2日休み";
 
-// 🎥 動画
+// 動画
 let videos={
 bench:{id:"W36C1YcI1MM",title:"ベンチプレス"},
 dumbbell:{id:"pctyhH_HYxc",title:"ダンベルプレス"},
