@@ -15,60 +15,24 @@
 
 <!-- 入力 -->
 <div class="bg-white p-4 rounded shadow">
-<h2 class="font-bold mb-2">入力</h2>
-
-<select id="sex" class="border p-1 w-full mb-2">
-<option value="male">男性</option>
-<option value="female">女性</option>
-</select>
 
 <input id="weight" type="number" placeholder="体重(kg)" class="border p-1 w-full mb-2">
 <input id="max" type="number" placeholder="ベンチMAX(kg)" class="border p-1 w-full mb-2">
 
-<select id="goal" class="border p-1 w-full mb-2">
-<option value="bulk">増量</option>
-<option value="maintain">維持</option>
-<option value="cut">減量</option>
-</select>
+<button onclick="start()" class="bg-blue-500 text-white w-full p-2 rounded">開始</button>
 
-<select id="days" class="border p-1 w-full mb-2">
-<option value="3">週3回</option>
-<option value="4">週4回</option>
-<option value="5">週5回</option>
-</select>
-
-<select id="foodType" class="border p-1 w-full mb-2">
-<option value="random">ランダム</option>
-<option value="chicken">鶏</option>
-<option value="beef">牛</option>
-<option value="pork">豚</option>
-<option value="fish">魚</option>
-<option value="egg">卵</option>
-</select>
-
-<button onclick="calc()" class="bg-blue-500 text-white w-full p-2 rounded">
-自動生成
-</button>
-
-<button onclick="record(true)" class="bg-green-500 text-white w-full p-2 mt-2 rounded">
-成功
-</button>
-
-<button onclick="record(false)" class="bg-red-500 text-white w-full p-2 mt-2 rounded">
-失敗
-</button>
+<button onclick="record(true)" class="bg-green-500 text-white w-full p-2 mt-2 rounded">成功</button>
+<button onclick="record(false)" class="bg-red-500 text-white w-full p-2 mt-2 rounded">失敗</button>
 
 </div>
 
 <!-- 出力 -->
 <div class="bg-white p-4 rounded shadow">
-<h2 class="font-bold mb-2">結果</h2>
 
-<p id="cal"></p>
-<p id="protein"></p>
-<p id="menu"></p>
-<p id="train" class="mt-2 whitespace-pre-line"></p>
-<p id="log" class="mt-2 text-sm"></p>
+<p id="status"></p>
+<p id="menu" class="mt-2 whitespace-pre-line"></p>
+
+<div id="video" class="mt-4"></div>
 
 </div>
 
@@ -76,99 +40,120 @@
 
 <script>
 
-let successCount = 0;
+let stage = 0;
+let maxWeight = 0;
 
-function calc(){
-
-let sex = document.getElementById("sex").value;
-let w = document.getElementById("weight").value;
-let max = document.getElementById("max").value;
-let goal = document.getElementById("goal").value;
-let days = document.getElementById("days").value;
-let foodType = document.getElementById("foodType").value;
-
-if(!w || !max){
-alert("入力して");
-return;
+function start(){
+maxWeight = parseInt(document.getElementById("max").value);
+stage = 0;
+updateMenu();
 }
 
-// カロリー
-let base = (sex === "male") ? w * 33 : w * 30;
-if(goal === "bulk") base += 300;
-if(goal === "cut") base -= 300;
-let cal = Math.round(base);
-
-// タンパク質
-let p = (sex === "male") ? w * 1.6 : w * 1.3;
-let pMeal = Math.round(p / 3);
-
-// 食事（料理＋内訳）
-let meals = {
-chicken:[
-{name:"親子丼", calc:(pMeal)=>"鶏もも"+Math.round(pMeal/0.2)+"g 卵"+Math.round(pMeal/6)+"個"},
-{name:"鶏の照り焼き", calc:(pMeal)=>"鶏もも"+Math.round(pMeal/0.23)+"g"},
-{name:"チキンステーキ", calc:(pMeal)=>"鶏もも"+Math.round(pMeal/0.23)+"g"}
-],
-beef:[
-{name:"牛丼", calc:(pMeal)=>"牛肉"+Math.round(pMeal/0.2)+"g"},
-{name:"ステーキ", calc:(pMeal)=>"牛肉"+Math.round(pMeal/0.22)+"g"},
-{name:"焼肉", calc:(pMeal)=>"牛肉"+Math.round(pMeal/0.2)+"g"}
-],
-pork:[
-{name:"生姜焼き", calc:(pMeal)=>"豚肉"+Math.round(pMeal/0.2)+"g"},
-{name:"とんかつ", calc:(pMeal)=>"豚肉"+Math.round(pMeal/0.18)+"g"},
-{name:"豚キムチ", calc:(pMeal)=>"豚肉"+Math.round(pMeal/0.2)+"g"}
-],
-fish:[
-{name:"焼き鮭", calc:(pMeal)=>"鮭"+Math.round(pMeal/0.22)+"g"},
-{name:"サバ味噌", calc:(pMeal)=>"サバ"+Math.round(pMeal/0.2)+"g"},
-{name:"マグロ丼", calc:(pMeal)=>"マグロ"+Math.round(pMeal/0.24)+"g"}
-],
-egg:[
-{name:"オムライス", calc:(pMeal)=>"卵"+Math.round(pMeal/6)+"個"},
-{name:"卵かけご飯", calc:(pMeal)=>"卵"+Math.round(pMeal/6)+"個"},
-{name:"ゆで卵", calc:(pMeal)=>"卵"+Math.round(pMeal/6)+"個"}
-]
-};
-
-// ランダムカテゴリ
-if(foodType === "random"){
-let keys = Object.keys(meals);
-foodType = keys[Math.floor(Math.random()*keys.length)];
-}
-
-let meal = meals[foodType][Math.floor(Math.random()*meals[foodType].length)];
-
-let menu = meal.name + "（" + meal.calc(pMeal) + "＋白米1杯）";
-
-// トレーニング
-let d1 = Math.round(max*0.9);
-let d2 = Math.round(max*0.8);
-let d3 = Math.round(max*0.7);
-let d4 = Math.round(max*0.85);
-
-let train =
-"週"+days+"回\n\n"+
-"Day1\nベンチ "+d1+"kg 3回×3セット（インターバル3分）\n補助3種\n\n"+
-"Day2\nベンチ "+d2+"kg 5回×4セット（インターバル2〜3分）\n補助3種\n\n"+
-"Day3\nベンチ "+d3+"kg 8回×3セット（インターバル1〜2分）\n補助3種\n\n"+
-"Day4\nベンチ "+d4+"kg 3回×3セット（インターバル3分）\n補助3種";
-
-// 出力
-document.getElementById("cal").innerText="カロリー："+cal+" kcal";
-document.getElementById("protein").innerText="タンパク質："+Math.round(p)+"g（1食 "+pMeal+"g）";
-document.getElementById("menu").innerText="食事："+menu;
-document.getElementById("train").innerText=train;
-}
-
-// 成功記録
 function record(success){
+
+// MAXチャレンジ処理
+if(stage === 4){
+
 if(success){
-successCount++;
+maxWeight += 5;
+alert("MAX更新🔥 " + maxWeight + "kg");
+stage = 0;
 }else{
-successCount=0;
+stage = 0;
 }
-document.getElementById("log").innerText="連続成功："+successCount+"回";
+
+}else{
+
+if(success){
+stage++;
+}else{
+stage--;
+}
+
+}
+
+if(stage < 0) stage = 0;
+if(stage > 4) stage = 4;
+
+updateMenu();
+}
+
+function updateMenu(){
+
+let w;
+
+if(stage === 0) w = Math.round(maxWeight * 0.65);
+if(stage === 1) w = Math.round(maxWeight * 0.75);
+if(stage === 2) w = Math.round(maxWeight * 0.85);
+if(stage === 3) w = Math.round(maxWeight * 0.92);
+if(stage === 4) w = maxWeight + 5;
+
+let text = "";
+
+if(stage === 0){
+text =
+"Stage0（フォーム）\n"+
+"ベンチ "+w+"kg 8回×3セット（インターバル1〜2分）\n\n"+
+"補助\n"+
+"・ダンベルプレス 20kg 10回×3\n"+
+"・トライセプス 20kg 12回×3\n"+
+"・腕立て 限界×2";
+}
+
+if(stage === 1){
+text =
+"Stage1（中）\n"+
+"ベンチ "+w+"kg 5回×4セット（インターバル2〜3分）\n\n"+
+"補助\n"+
+"・インクラインプレス 22kg 10回×3\n"+
+"・ディップス 自重 10回×3\n"+
+"・サイドレイズ 10kg 12回×3";
+}
+
+if(stage === 2){
+text =
+"Stage2（重）\n"+
+"ベンチ "+w+"kg 3回×3セット（インターバル3分）\n\n"+
+"補助\n"+
+"・ディップス +10kg 8回×3\n"+
+"・ダンベルプレス 25kg 8回×3\n"+
+"・プレスダウン 25kg 12回×3";
+}
+
+if(stage === 3){
+text =
+"Stage3（超重）\n"+
+"ベンチ "+w+"kg 2回×3セット（インターバル3分）\n\n"+
+"補助\n"+
+"・ディップス +15kg 6回×3\n"+
+"・ダンベルプレス 28kg 6回×3\n"+
+"・プレスダウン 30kg 10回×3";
+}
+
+if(stage === 4){
+text =
+"🔥MAXチャレンジ🔥\n"+
+"ベンチ "+w+"kg 1回\n\n"+
+"成功でMAX更新（+5kg）";
+}
+
+// 動画（種目連動）
+let videoHTML = `
+<iframe width="100%" height="200"
+src="https://www.youtube.com/embed/rT7DgCr-3pg"
+frameborder="0" allowfullscreen></iframe>
+
+<iframe width="100%" height="200"
+src="https://www.youtube.com/embed/2z8JmcrW-As"
+frameborder="0" allowfullscreen></iframe>
+`;
+
+document.getElementById("status").innerText =
+"Stage：" + stage + " / MAX：" + maxWeight + "kg";
+
+document.getElementById("menu").innerText = text;
+document.getElementById("video").innerHTML = videoHTML;
+
 }
 
 </script>
