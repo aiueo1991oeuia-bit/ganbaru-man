@@ -75,9 +75,16 @@
 let stage = 1;
 let maxWeight = 0;
 let timerInterval;
+let meals = [];
 
 function round5(num){
 return Math.round(num/5)*5;
+}
+
+// 🔥 食事生成
+function generateMeal(){
+document.getElementById("meal").innerText =
+"食事例（1食分）：\n"+meals[Math.floor(Math.random()*meals.length)]();
 }
 
 function start(){
@@ -105,8 +112,8 @@ const eggCount = (goal==="bulk") ? 2 : 1;
 const eggProtein = eggCount*6;
 const eggFat = eggCount*5;
 
-// 🔥 食事ランダム（強化版）
-let meals = [
+// 食事リスト（完全版）
+meals = [
 
 ()=>{let meat=Math.max(80,Math.round((proteinMeal-eggProtein)/0.2));let protein=Math.round(meat*0.2)+eggProtein;let fat=Math.round(meat*0.15)+eggFat;let kcal=protein*4+fat*9+carb*4;
 return `親子丼（鶏もも肉${meat}g + 卵${eggCount}個 + 白米 ${riceLabel}）
@@ -149,8 +156,7 @@ return `ツナ丼（マグロ${fish}g + 白米 ${riceLabel}）
 タンパク質${protein}g / 脂質${fat}g / 炭水化物${carb}g / 約${kcal}kcal`;}
 ];
 
-document.getElementById("meal").innerText =
-"食事例（1食分）：\n"+meals[Math.floor(Math.random()*meals.length)]();
+generateMeal();
 
 document.getElementById("nutrition").innerText =
 "1日の目安：タンパク質 "+Math.round(proteinDay)+"g / カロリー "+Math.round(cal)+"kcal";
@@ -172,8 +178,10 @@ max:maxWeight
 
 localStorage.setItem("log",JSON.stringify(log));
 
-if(stage===5){
-if(success){ maxWeight+=5; stage=1; } else { stage=1; }
+// 🔥 MAX更新修正済み
+if(stage === 5){
+if(success){ maxWeight += 5; }
+stage = 1;
 }else{
 if(success){stage++}else{stage--}
 }
@@ -183,6 +191,7 @@ if(stage>5) stage=5;
 
 updateMenu();
 loadLog();
+generateMeal(); // ←毎回食事変わる
 }
 
 function updateMenu(){
