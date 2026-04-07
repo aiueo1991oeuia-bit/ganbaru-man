@@ -8,7 +8,6 @@
 </head>
 
 <body class="bg-gray-100 p-4">
-
 <h1 class="text-2xl font-bold text-center mb-4">ベンチプレス100kgチャレンジ</h1>
 
 <div class="grid gap-4 max-w-3xl mx-auto">
@@ -33,9 +32,9 @@
 </div>
 
 <div class="bg-white p-4 rounded shadow">
-<p id="status" class="font-bold"></p>
-<p id="nutrition" class="mt-2 whitespace-pre-line"></p>
-<p id="meal" class="mt-2 whitespace-pre-line"></p>
+<p id="status" class="font-bold mb-2"></p>
+<p id="nutrition" class="mb-3 whitespace-pre-line"></p>
+<p id="meal" class="mb-3 whitespace-pre-line"></p>
 <p id="menu" class="mt-2 whitespace-pre-line"></p>
 
 <button onclick="startTimer()" class="bg-purple-500 text-white w-full p-2 mt-3 rounded">休憩スタート</button>
@@ -58,207 +57,188 @@
 </div>
 
 <script>
-
 let stage = 1;
 let maxWeight = 0;
 let timerInterval;
 
-const videos = {
-"ダンベルプレス":"pJgZociaUes",
-"インクラインダンベル":"Ujp-saRDMEg",
-"ダンベルフライ":"xDLBDkICBS8",
-"インクラインベンチ":"Unc20x4ggVA",
-"懸垂":"40Sq7kkUuWM",
-"ラットプルダウン":"aN98D1YD00o",
-"トライセプス":"wdVXHWTfC18",
-"ディップス":"a_OCI-7pFBk",
-"MAX":"W36C1YcI1MM"
+const riceMap = {
+  bulk: "大盛り（茶碗1杯の約1.2倍）",
+  maintain: "普通（茶碗1杯）",
+  cut: "少なめ（茶碗1杯の約0.7倍）",
+  cut_strict: "かなり少なめ（茶碗1杯の約0.5倍）"
 };
 
-const programs = {
-1:["ダンベルプレス","懸垂","トライセプス"],
-2:["インクラインダンベル","ラットプルダウン","ディップス"],
-3:["ダンベルフライ","懸垂","トライセプス"],
-4:["インクラインベンチ","ラットプルダウン","ディップス"]
-};
+function roundWeight(num, sex){
+  return sex==="female" ? Math.round(num/2.5)*2.5 : Math.round(num/5)*5;
+}
 
-function roundWeight(n,sex){
-return sex==="female"?Math.round(n/2.5)*2.5:Math.round(n/5)*5;
+function getCalories(w, sex, goal){
+  let cal = sex==="male" ? w*33 : w*30;
+  if(goal==="bulk") cal+=300;
+  if(goal==="cut") cal-=300;
+  if(goal==="cut_strict") cal-=500;
+  return Math.round(cal);
+}
+
+function getProtein(w, sex){
+  return Math.round(sex==="male" ? w*1.6 : w*1.3);
 }
 
 function start(){
-const w=Number(weight.value);
-const m=Number(max.value);
-const s=sex.value;
-const g=goal.value;
+  let w = Number(weight.value);
+  let sexVal = sex.value;
+  let goalVal = goal.value;
 
-maxWeight=roundWeight(m,s);
-stage=1;
+  maxWeight = roundWeight(Number(max.value), sexVal);
+  stage = 1;
 
-nutrition.innerText=`タンパク質 ${Math.round(w*1.6)}g\nカロリー ${Math.round(w*33)}kcal`;
+  nutrition.innerText =
+    `1日の目安：タンパク質 ${getProtein(w, sexVal)}g / カロリー ${getCalories(w, sexVal, goalVal)}kcal`;
 
-generateMeal(g);
-updateMenu();
-loadLog();
+  generateMeal(goalVal);
+  updateMenu();
+  loadLog();
 }
 
-function generateMeal(goal){
+function generateMeal(goalVal){
 
-const w=Number(weight.value);
-const proteinLimit=Math.round(w*0.4);
-const proteinTarget=Math.round(w*1.6);
+  let w = Number(weight.value);
+  let sexVal = sex.value;
 
-/* ★ここ修正済み（基準明確化） */
-let rice="普通盛り（茶碗1杯）";
-if(goal==="cut_strict") rice="小盛り（茶碗1杯の約7割）";
-if(goal==="bulk") rice="大盛り（茶碗1杯の約1.2倍）";
+  let totalCal = getCalories(w, sexVal, goalVal);
+  let proteinTarget = getProtein(w, sexVal);
 
-const breakfast={
-text:`おにぎり1個＋ゆで卵2個＋ギリシャヨーグルト1個
-タンパク質25g`,
-protein:25
-};
+  let proteinLimit = Math.round(w*0.4);
 
-let meals=[
-{name:"鶏むね肉",p:40},
-{name:"サバ",p:28},
-{name:"牛もも",p:40},
-{name:"豚ロース",p:32},
-{name:"親子丼",p:35},
-{name:"ハンバーグ",p:28}
-];
+  let meals = [
+    {name:"鶏むね肉", p:40, f:10},
+    {name:"牛もも", p:40, f:15},
+    {name:"豚ロース", p:32, f:25},
+    {name:"サバ", p:28, f:20},
+    {name:"ハンバーグ", p:28, f:30}
+  ];
 
-let pool=[...meals];
-let lunch=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
-let dinner=pool[Math.floor(Math.random()*pool.length)];
+  meals.sort(()=>Math.random()-0.5);
 
-function make(m){
-return{
-text:`${m.name}＋白米${rice}
-タンパク質${Math.min(m.p,proteinLimit)}g`,
-protein:Math.min(m.p,proteinLimit)
-};
-}
+  function make(base){
+    let p = Math.min(base.p, proteinLimit);
+    return `${base.name} + ご飯${riceMap[goalVal]}
+タンパク質${p}g`;
+  }
 
-const l=make(lunch);
-const d=make(dinner);
+  let breakfast = `ヨーグルト1個 + おにぎり1個 + プロテイン
+タンパク質約30g`;
 
-const total=breakfast.protein+l.protein+d.protein;
-const shake=Math.max(0,proteinTarget-total);
+  let lunch = make(meals[0]);
+  let dinner = make(meals[1]);
 
-meal.innerText=
-`🍽 食事例
+  meal.innerText =
+`🍽 1日の食事例
 
-朝
-${breakfast.text}
+🍳 朝
+${breakfast}
 
-昼
-${l.text}
+🍱 昼
+${lunch}
 
-夜
-${d.text}
-
-プロテイン補助 ${shake}g`;
+🍽 夜
+${dinner}`;
 }
 
 function record(success){
 
-const s=sex.value;
+  let sexVal = sex.value;
 
-if(stage===5){
-if(success){
-maxWeight+=(s==="female"?2.5:5);
-max.value=maxWeight;
-stage=1;
-}else{
-stage=4;
-}
-}else{
-if(success) stage++;
-}
+  let log = JSON.parse(localStorage.getItem("bench_log")||"[]");
 
-updateMenu();
-loadLog();
+  log.unshift({
+    date:new Date().toLocaleDateString(),
+    stage,
+    result:success?"成功":"失敗",
+    max:maxWeight
+  });
+
+  localStorage.setItem("bench_log",JSON.stringify(log));
+
+  if(stage===5){
+    if(success){
+      maxWeight += sexVal==="female"?2.5:5;
+      max.value = maxWeight;
+      stage = 1;
+    }else{
+      stage = 4;
+    }
+  }else{
+    if(success) stage++;
+  }
+
+  updateMenu();
+  loadLog();
 }
 
 function updateMenu(){
 
-const s=sex.value;
+  let sexVal = sex.value;
 
-let w;
-if(stage===1) w=maxWeight*0.65;
-if(stage===2) w=maxWeight*0.75;
-if(stage===3) w=maxWeight*0.85;
-if(stage===4) w=maxWeight*0.92;
-if(stage===5) w=maxWeight+(s==="female"?2.5:5);
+  let mainWeight =
+    stage===1?maxWeight*0.65:
+    stage===2?maxWeight*0.75:
+    stage===3?maxWeight*0.85:
+    stage===4?maxWeight*0.92:
+    maxWeight+5;
 
-w=roundWeight(w,s);
+  let rest = stage<=2?"2分":"3分";
+  let dumb = roundWeight(maxWeight*(stage<=2?0.2:0.3),sexVal);
 
-const rest=stage<=2?"2分":"3分";
+  let text =
+`Stage${stage}
 
-let text=
-`Stage${stage===5?"（Last Stage）":stage}
+①アップ
+ベンチ ${roundWeight(maxWeight*0.5,sexVal)}kg 10回×2（休憩2分）
 
-アップ
-ベンチ ${roundWeight(maxWeight*0.5,s)}kg 10回×2（休憩2分）
-
-メイン
-ベンチ ${w}kg ${stage===5?"1回":"3回×3"} ${stage===5?"":`（休憩${rest}）`}
+②メイン
+ベンチ ${roundWeight(mainWeight,sexVal)}kg ${stage===5?"1回":"3回×3"} ${stage===5?"":`（休憩${rest}）`}
 `;
 
-if(stage!==5){
-let subs=programs[stage];
-text+=`
-補助
-・${subs[0]}（休憩${rest}）
-・${subs[1]}（できない人はラットプルダウン）（休憩${rest}）
-・${subs[2]}（休憩${rest}）`;
-}
+  if(stage!==5){
+    text+=`
+③補助
+・ダンベルプレス ${dumb}kg 10回×3（休憩${rest}）
+・懸垂（できない人はラットプルダウン）10回×3（休憩${rest}）
+・トライセプス 12回×3（休憩${rest})`;
+  }
 
-menu.innerText=text;
-status.innerText=`MAX:${maxWeight}kg Stage:${stage}`;
-
-renderVideo();
-}
-
-function renderVideo(){
-
-if(stage===5){
-video.innerHTML=`<iframe width="100%" height="220" src="https://www.youtube.com/embed/${videos["MAX"]}"></iframe>`;
-return;
-}
-
-let subs=programs[stage];
-
-video.innerHTML=subs.map(s=>{
-return `<iframe width="100%" height="220" src="https://www.youtube.com/embed/${videos[s]}"></iframe>`;
-}).join("");
+  menu.innerText = text;
+  status.innerText = `Stage:${stage} / MAX:${maxWeight}kg`;
 }
 
 function startTimer(){
-let sec=stage<=2?120:180;
-clearInterval(timerInterval);
+  clearInterval(timerInterval);
+  let sec = stage<=2?120:180;
 
-timerInterval=setInterval(()=>{
-let m=Math.floor(sec/60);
-let s=sec%60;
-timer.innerText=`${m}:${s}`;
-sec--;
-},1000);
+  timerInterval=setInterval(()=>{
+    let m=Math.floor(sec/60);
+    let s=sec%60;
+    timer.innerText=`休憩 ${m}:${s.toString().padStart(2,'0')}`;
+    sec--;
+    if(sec<0){
+      clearInterval(timerInterval);
+      timer.innerText="スタート🔥";
+    }
+  },1000);
 }
 
 function loadLog(){
-let log=JSON.parse(localStorage.getItem("bench_log")||"[]");
-logList.innerHTML=log.map(l=>`<li>${l.date} ${l.result}</li>`).join("");
+  let log=JSON.parse(localStorage.getItem("bench_log")||"[]");
+  logList.innerHTML = log.map(l=>`<li>${l.date}｜Stage${l.stage}｜${l.result}｜MAX${l.max}kg</li>`).join("");
 }
 
 function resetLog(){
-if(confirm("削除する？")){
-localStorage.removeItem("bench_log");
-loadLog();
+  if(confirm("削除する？")){
+    localStorage.removeItem("bench_log");
+    loadLog();
+  }
 }
-}
-
 </script>
 
 </body>
