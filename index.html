@@ -108,9 +108,10 @@ const w=Number(weight.value);
 const proteinLimit=Math.round(w*0.4);
 const proteinTarget=Math.round(w*1.6);
 
+/* ★ここ修正済み（基準明確化） */
 let rice="普通盛り（茶碗1杯）";
-if(goal==="cut_strict") rice="小盛り（茶碗0.7杯くらい）";
-if(goal==="bulk") rice="大盛り（1.2倍くらい）";
+if(goal==="cut_strict") rice="小盛り（茶碗1杯の約7割）";
+if(goal==="bulk") rice="大盛り（茶碗1杯の約1.2倍）";
 
 const breakfast={
 text:`おにぎり1個＋ゆで卵2個＋ギリシャヨーグルト1個
@@ -211,7 +212,7 @@ text+=`
 補助
 ・${subs[0]}（休憩${rest}）
 ・${subs[1]}（できない人はラットプルダウン）（休憩${rest}）
-・${subs[2]}（休憩${rest})`;
+・${subs[2]}（休憩${rest}）`;
 }
 
 menu.innerText=text;
