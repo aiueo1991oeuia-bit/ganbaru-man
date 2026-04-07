@@ -13,7 +13,6 @@
 
 <div class="grid gap-4">
 
-<!-- 入力 -->
 <div class="bg-white p-4 rounded shadow">
 <select id="sex" class="border p-1 w-full mb-2">
 <option value="male">男性</option>
@@ -32,13 +31,11 @@
 <button onclick="start()" class="bg-blue-500 text-white w-full p-2 rounded">開始</button>
 </div>
 
-<!-- 表示 -->
 <div class="bg-white p-4 rounded shadow">
 <p id="status"></p>
 <p id="nutrition"></p>
 <p id="meal"></p>
 <p id="menu" class="mt-2 whitespace-pre-line"></p>
-<p id="rest" class="text-sm text-gray-600 mt-2"></p>
 
 <button onclick="startTimer()" class="bg-purple-500 text-white w-full p-2 mt-3 rounded">
 休憩スタート
@@ -49,16 +46,9 @@
 <div id="video" class="mt-4"></div>
 </div>
 
-<!-- 成功失敗 -->
 <div class="bg-white p-4 rounded shadow">
 <button onclick="record(true)" class="bg-green-500 text-white w-full p-2 mb-2 rounded">成功</button>
 <button onclick="record(false)" class="bg-red-500 text-white w-full p-2 rounded">失敗</button>
-</div>
-
-<!-- ログ -->
-<div class="bg-white p-4 rounded shadow">
-<ul id="logList" class="text-sm"></ul>
-<button onclick="resetLog()" class="bg-gray-400 text-white w-full p-2 mt-4 rounded">ログ削除</button>
 </div>
 
 </div>
@@ -68,7 +58,7 @@
 let stage = 1;
 let maxWeight = 0;
 
-function roundWeight(num, sex){
+function round(num, sex){
   return sex==="female"
     ? Math.round(num/2.5)*2.5
     : Math.round(num/5)*5;
@@ -76,68 +66,51 @@ function roundWeight(num, sex){
 
 function start(){
 
-  let w = Number(document.getElementById("weight").value);
-  let sex = document.getElementById("sex").value;
-  let goal = document.getElementById("goal").value;
+  let w = Number(weight.value);
+  let sex = sexEl.value;
+  let goal = goalEl.value;
 
-  maxWeight = roundWeight(Number(document.getElementById("max").value), sex);
+  maxWeight = round(Number(max.value), sex);
   stage = 1;
 
   let cal = (sex==="male") ? w*33 : w*30;
-  if(goal==="bulk") cal += 300;
-  if(goal==="cut") cal -= 300;
+  if(goal==="bulk") cal+=300;
+  if(goal==="cut") cal-=300;
 
   let protein = (sex==="male") ? w*1.6 : w*1.3;
 
-  document.getElementById("nutrition").innerText =
-    `1日：タンパク質 ${Math.round(protein)}g / カロリー ${Math.round(cal)}kcal`;
+  nutrition.innerText =
+    `タンパク質 ${Math.round(protein)}g / カロリー ${Math.round(cal)}kcal`;
 
   generateMeal(goal);
 
   updateMenu();
-  loadLog();
 }
+
+const sexEl = document.getElementById("sex");
+const weight = document.getElementById("weight");
+const max = document.getElementById("max");
+const goalEl = document.getElementById("goal");
+const nutrition = document.getElementById("nutrition");
 
 function generateMeal(goal){
 
-  let rice = goal==="bulk" ? "1.5杯" : goal==="cut" ? "0.7杯" : "1杯";
-  let carb = goal==="bulk"?80:goal==="cut"?37:55;
+  let rice = goal==="bulk"?"1.5杯":goal==="cut"?"0.7杯":"1杯";
 
   let meals=[
-`牛丼（牛バラ150g＋白米${rice}）
-タンパク質30g 脂質40g 炭水化物${carb}g 約750kcal`,
-
-`親子丼（鶏もも150g＋卵2個＋白米${rice}）
-タンパク質35g 脂質20g 炭水化物${carb}g 約650kcal`,
-
-`サバ定食（サバ＋白米${rice}）
-タンパク質28g 脂質20g 炭水化物${carb}g 約600kcal`,
-
-`豚生姜焼き（豚ロース150g＋白米${rice}）
-タンパク質32g 脂質25g 炭水化物${carb}g 約680kcal`,
-
-`ステーキ（牛もも200g＋白米${rice}）
-タンパク質40g 脂質15g 炭水化物${carb}g 約700kcal`
+    `牛丼（牛バラ150g＋白米${rice}）`,
+    `親子丼（鶏もも150g＋卵2個＋白米${rice}）`,
+    `サバ定食（サバ＋白米${rice}）`,
+    `豚生姜焼き（豚ロース150g＋白米${rice}）`,
+    `ステーキ（牛もも200g＋白米${rice}）`
   ];
 
-  document.getElementById("meal").innerText =
-    "食事例（1食）：\n" + meals[Math.floor(Math.random()*meals.length)];
+  meal.innerText="食事例：\n"+meals[Math.floor(Math.random()*meals.length)];
 }
 
 function record(success){
 
-  let sex = document.getElementById("sex").value;
-
-  let log = JSON.parse(localStorage.getItem("log")||"[]");
-
-  log.unshift({
-    date:new Date().toLocaleDateString(),
-    stage,
-    result:success?"成功":"失敗",
-    max:maxWeight
-  });
-
-  localStorage.setItem("log",JSON.stringify(log));
+  let sex = sexEl.value;
 
   if(stage===5){
     if(success){
@@ -150,116 +123,76 @@ function record(success){
 
   if(stage<1) stage=1;
 
-  generateMeal(document.getElementById("goal").value);
   updateMenu();
-  loadLog();
 }
 
 function updateMenu(){
 
-  let sex = document.getElementById("sex").value;
+  let sex = sexEl.value;
 
   let w;
-  if(stage===1) w = roundWeight(maxWeight*0.65,sex);
-  if(stage===2) w = roundWeight(maxWeight*0.75,sex);
-  if(stage===3) w = roundWeight(maxWeight*0.85,sex);
-  if(stage===4) w = roundWeight(maxWeight*0.92,sex);
-  if(stage===5) w = roundWeight(maxWeight+(sex==="female"?2.5:5),sex);
+  if(stage===1) w=round(maxWeight*0.65,sex);
+  if(stage===2) w=round(maxWeight*0.75,sex);
+  if(stage===3) w=round(maxWeight*0.85,sex);
+  if(stage===4) w=round(maxWeight*0.92,sex);
+  if(stage===5) w=round(maxWeight+(sex==="female"?2.5:5),sex);
 
-  let label = (stage===5)?"Last Stage（MAX挑戦）":"Stage"+stage;
-  let rest = (stage<=2)?"2分":"3分";
+  let light = stage<=2;
+  let rest = light ? "2分" : "3分";
 
-  let subs=[
-    ["ダンベルプレス","懸垂","トライセプス"],
-    ["インクラインダンベル","ラットプルダウン","ディップス"],
-    ["ダンベルフライ","懸垂","ケーブルプレスダウン"],
-    ["インクラインベンチ","ラットプルダウン","ディップス"]
-  ];
+  let dumb = round(maxWeight*(light?0.2:0.3),sex);
 
-  let menuText =
-`${label}
+  let menu =
+`Stage${stage===5?"（MAX）":stage}
 
 ①アップ
-ベンチ ${roundWeight(maxWeight*0.5,sex)}kg 10回×2
+ベンチ ${round(maxWeight*0.5,sex)}kg 10回×2（休憩2分）
 
 ②メイン
-ベンチ ${w}kg ${stage===5?"1回（MAX）":"3回×3"}（休憩${rest}）`;
+ベンチ ${w}kg ${stage===5?"1回":"3回×3"} ${stage===5?"":"（休憩"+rest+"）"}
+`;
 
-  if(stage !== 5){
-    let s = subs[stage-1];
-    menuText += `
-
+  if(stage!==5){
+    menu+=`
 ③補助
-・${s[0]} 10回×3
-・${s[1]}（できない人はラットプルダウン）10回×3
-・${s[2]} 12回×3`;
+・ダンベルプレス ${dumb}kg 10回×3（休憩${rest}）
+・懸垂（できない人はラットプルダウン）10回×3（休憩${rest}）
+・トライセプス ${dumb}kg 12回×3（休憩${rest})}`;
   }
 
-  document.getElementById("menu").innerText = menuText;
+  document.getElementById("menu").innerText = menu;
 
-  document.getElementById("status").innerText =
-    `Stage:${stage} / MAX:${maxWeight}kg`;
+  status.innerText = `Stage:${stage} / MAX:${maxWeight}kg`;
 
-  document.getElementById("rest").innerText =
-    "※Stage後は1〜2日休息推奨";
+  // 動画完全一致
+  let videos = [
+    "W36C1YcI1MM", // ベンチ
+    "pctyhH_HYxc", // ダンベル
+    "q2lbpPFzS-M", // 懸垂
+    "EU5KqPW19I8"  // 三頭
+  ];
 
-  const videoMap={
-    "ベンチ":"W36C1YcI1MM",
-    "ダンベル":"pctyhH_HYxc",
-    "懸垂":"q2lbpPFzS-M",
-    "ラット":"q2lbpPFzS-M",
-    "ディップス":"EU5KqPW19I8",
-    "トライ":"EU5KqPW19I8"
-  };
+  let html="<p>🎥 種目解説</p>";
 
-  function getVid(name){
-    for(let k in videoMap){
-      if(name.includes(k)) return videoMap[k];
-    }
-  }
+  videos.forEach(v=>{
+    html+=`<iframe width="100%" height="200" src="https://www.youtube.com/embed/${v}"></iframe>`;
+  });
 
-  let html="<p>🎥 解説</p>";
-
-  html += `<iframe width="100%" height="200" src="https://www.youtube.com/embed/${getVid("ベンチ")}"></iframe>`;
-
-  if(stage !== 5){
-    let s = subs[stage-1];
-    [s[0],s[1],s[2]].forEach(n=>{
-      html += `<iframe width="100%" height="200" src="https://www.youtube.com/embed/${getVid(n)}"></iframe>`;
-    });
-  }
-
-  document.getElementById("video").innerHTML = html;
+  video.innerHTML=html;
 }
 
 function startTimer(){
-  let sec=(stage<=2)?120:180;
+  let sec = (stage<=2)?120:180;
   let t=setInterval(()=>{
     let m=Math.floor(sec/60);
     let s=sec%60;
-    document.getElementById("timer").innerText=`休憩 ${m}:${s}`;
+    timer.innerText=`休憩 ${m}:${s}`;
     sec--;
     if(sec<0){
       clearInterval(t);
-      document.getElementById("timer").innerText="スタート🔥";
+      timer.innerText="スタート🔥";
     }
   },1000);
-}
-
-function loadLog(){
-  let log=JSON.parse(localStorage.getItem("log")||"[]");
-  let html="";
-  log.forEach(l=>{
-    html+=`<li>${l.date}｜Stage${l.stage}｜${l.result}｜MAX${l.max}kg</li>`;
-  });
-  document.getElementById("logList").innerHTML=html;
-}
-
-function resetLog(){
-  if(confirm("削除する？")){
-    localStorage.removeItem("log");
-    loadLog();
-  }
 }
 
 </script>
