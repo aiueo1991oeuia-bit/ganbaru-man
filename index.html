@@ -1,320 +1,436 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ベンチプレス100kgチャレンジ</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ベンチプレス100kgチャレンジ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100 p-4">
+  <h1 class="text-2xl font-bold text-center mb-4">ベンチプレス100kgチャレンジ</h1>
 
-<h1 class="text-2xl font-bold text-center mb-4">ベンチプレス100kgチャレンジ</h1>
+  <div class="grid gap-4 max-w-3xl mx-auto">
 
-<div class="grid gap-4">
+    <div class="bg-white p-4 rounded shadow">
+      <select id="sex" class="border p-2 w-full mb-2 rounded">
+        <option value="male">男性</option>
+        <option value="female">女性</option>
+      </select>
 
-<div class="bg-white p-4 rounded shadow">
+      <input id="weight" type="number" placeholder="体重(kg)" class="border p-2 w-full mb-2 rounded" />
+      <input id="max" type="number" placeholder="ベンチMAX(kg)" class="border p-2 w-full mb-2 rounded" />
 
-<select id="sex" class="border p-1 w-full mb-2">
-<option value="male">男性</option>
-<option value="female">女性</option>
-</select>
+      <select id="goal" class="border p-2 w-full mb-2 rounded">
+        <option value="bulk">増量</option>
+        <option value="maintain">維持</option>
+        <option value="cut">減量</option>
+        <option value="cut_strict">減量特化</option>
+      </select>
 
-<input id="weight" type="number" placeholder="体重(kg)" class="border p-1 w-full mb-2">
-<input id="max" type="number" placeholder="ベンチMAX(kg)" class="border p-1 w-full mb-2">
+      <button onclick="start()" class="bg-blue-500 hover:bg-blue-600 text-white w-full p-2 rounded">
+        開始
+      </button>
+    </div>
 
-<select id="goal" class="border p-1 w-full mb-2">
-<option value="bulk">増量</option>
-<option value="maintain">維持</option>
-<option value="cut">減量</option>
-<option value="cut_strict">減量特化</option>
-</select>
+    <div class="bg-white p-4 rounded shadow">
+      <p id="status" class="font-bold mb-2"></p>
+      <p id="nutrition" class="mb-3 whitespace-pre-line"></p>
+      <p id="meal" class="mb-3 whitespace-pre-line"></p>
+      <p id="menu" class="mt-2 whitespace-pre-line"></p>
 
-<button onclick="start()" class="bg-blue-500 text-white w-full p-2 rounded">開始</button>
+      <button onclick="startTimer()" class="bg-purple-500 hover:bg-purple-600 text-white w-full p-2 mt-3 rounded">
+        休憩スタート
+      </button>
 
-</div>
+      <p id="timer" class="text-xl text-center mt-2 font-bold"></p>
 
-<div class="bg-white p-4 rounded shadow">
+      <div id="video" class="mt-4"></div>
+    </div>
 
-<p id="status"></p>
-<p id="nutrition"></p>
-<p id="meal"></p>
-<p id="menu" class="mt-2 whitespace-pre-line"></p>
+    <div class="bg-white p-4 rounded shadow">
+      <button onclick="record(true)" class="bg-green-500 hover:bg-green-600 text-white w-full p-2 mb-2 rounded">
+        成功
+      </button>
+      <button onclick="record(false)" class="bg-red-500 hover:bg-red-600 text-white w-full p-2 rounded">
+        失敗
+      </button>
+    </div>
 
-<button onclick="startTimer()" class="bg-purple-500 text-white w-full p-2 mt-3 rounded">
-休憩スタート
-</button>
+    <div class="bg-white p-4 rounded shadow">
+      <h2 class="font-bold mb-2">ログ</h2>
+      <ul id="logList" class="space-y-1 text-sm"></ul>
+      <button onclick="resetLog()" class="bg-gray-400 hover:bg-gray-500 text-white w-full p-2 mt-2 rounded">
+        ログ削除
+      </button>
+    </div>
+  </div>
 
-<p id="timer" class="text-xl text-center mt-2"></p>
+  <script>
+    let stage = 1;
+    let maxWeight = 0;
+    let timerInterval = null;
 
-<div id="video" class="mt-4"></div>
+    const sexSelect = document.getElementById("sex");
+    const weightInput = document.getElementById("weight");
+    const maxInput = document.getElementById("max");
+    const goalSelect = document.getElementById("goal");
+    const nutrition = document.getElementById("nutrition");
+    const meal = document.getElementById("meal");
+    const menu = document.getElementById("menu");
+    const status = document.getElementById("status");
+    const video = document.getElementById("video");
+    const timer = document.getElementById("timer");
+    const logList = document.getElementById("logList");
 
-</div>
+    const exerciseVideos = {
+      "ダンベルプレス": "W36C1YcI1MM",
+      "インクラインダンベル": "EU5KqPW19I8",
+      "ダンベルフライ": "W36C1YcI1MM",
+      "インクラインベンチ": "EU5KqPW19I8",
+      "懸垂": "pctyhH_HYxc",
+      "ラットプルダウン": "pctyhH_HYxc",
+      "トライセプス": "q2lbpPFzS-M",
+      "ディップス": "q2lbpPFzS-M",
+      "ケーブルプレスダウン": "q2lbpPFzS-M",
+      "ベンチプレスMAX挑戦": "W36C1YcI1MM"
+    };
 
-<div class="bg-white p-4 rounded shadow">
-<button onclick="record(true)" class="bg-green-500 text-white w-full p-2 mb-2 rounded">成功</button>
-<button onclick="record(false)" class="bg-red-500 text-white w-full p-2 rounded">失敗</button>
-</div>
+    const stagePrograms = {
+      1: [
+        { name: "ダンベルプレス", reps: "10回×3", useWeight: true },
+        { name: "懸垂", alt: "できない人はラットプルダウン", reps: "10回×3", useWeight: false },
+        { name: "トライセプス", reps: "12回×3", useWeight: true }
+      ],
+      2: [
+        { name: "インクラインダンベル", reps: "10回×3", useWeight: true },
+        { name: "ラットプルダウン", reps: "10回×3", useWeight: false },
+        { name: "ディップス", reps: "10回×3", useWeight: false }
+      ],
+      3: [
+        { name: "ダンベルフライ", reps: "10回×3", useWeight: true },
+        { name: "懸垂", alt: "できない人はラットプルダウン", reps: "10回×3", useWeight: false },
+        { name: "ケーブルプレスダウン", reps: "12回×3", useWeight: true }
+      ],
+      4: [
+        { name: "インクラインベンチ", reps: "10回×3", useWeight: true },
+        { name: "ラットプルダウン", reps: "10回×3", useWeight: false },
+        { name: "ディップス", reps: "10回×3", useWeight: false }
+      ]
+    };
 
-<div class="bg-white p-4 rounded shadow">
-<h2 class="font-bold mb-2">ログ</h2>
-<ul id="logList"></ul>
-<button onclick="resetLog()" class="bg-gray-400 text-white w-full p-2 mt-2 rounded">ログ削除</button>
-</div>
+    function roundWeight(num, sex) {
+      return sex === "female"
+        ? Math.round(num / 2.5) * 2.5
+        : Math.round(num / 5) * 5;
+    }
 
-</div>
+    function formatWeight(num) {
+      return Number.isInteger(num) ? `${num}` : `${num.toFixed(1)}`;
+    }
 
-<script>
+    function getCalories(weight, sex, goal) {
+      let cal = sex === "male" ? weight * 33 : weight * 30;
+      if (goal === "bulk") cal += 300;
+      if (goal === "cut") cal -= 300;
+      if (goal === "cut_strict") cal -= 500;
+      return Math.round(cal);
+    }
 
-let stage=1;
-let maxWeight=0;
+    function getProtein(weight, sex) {
+      return Math.round(sex === "male" ? weight * 1.6 : weight * 1.3);
+    }
 
-function round(num,sex){
-  return sex==="female"
-  ? Math.round(num/2.5)*2.5
-  : Math.round(num/5)*5;
-}
+    function start() {
+      const bodyWeight = Number(weightInput.value);
+      const sex = sexSelect.value;
+      const goal = goalSelect.value;
+      const inputMax = Number(maxInput.value);
 
-function start(){
+      if (!bodyWeight || !inputMax || bodyWeight <= 0 || inputMax <= 0) {
+        alert("体重とベンチMAXを正しく入力してください。");
+        return;
+      }
 
-  let w=Number(weight.value);
-  let sex=sexEl.value;
-  let goal=goalEl.value;
+      maxWeight = roundWeight(inputMax, sex);
+      stage = 1;
 
-  maxWeight=round(Number(max.value),sex);
-  stage=1;
+      const calories = getCalories(bodyWeight, sex, goal);
+      const protein = getProtein(bodyWeight, sex);
 
-  let cal=(sex==="male")?w*33:w*30;
+      nutrition.innerText =
+        `1日の目安：タンパク質 ${protein}g / カロリー ${calories}kcal`;
 
-  if(goal==="bulk") cal+=300;
-  if(goal==="cut") cal-=300;
-  if(goal==="cut_strict") cal-=500;
+      generateMeal(goal);
+      updateMenu();
+      loadLog();
+      timer.innerText = "";
+    }
 
-  let protein=(sex==="male")?w*1.6:w*1.3;
+    function generateMeal(goal) {
+      const bodyWeight = Number(weightInput.value);
+      const sex = sexSelect.value;
 
-  nutrition.innerText=
-  `1日の目安：タンパク質 ${Math.round(protein)}g / カロリー ${Math.round(cal)}kcal`;
+      const totalCal = getCalories(bodyWeight, sex, goal);
+      const proteinTarget = getProtein(bodyWeight, sex);
 
-  generateMeal(goal);
-  updateMenu();
-  loadLog();
-}
+      const calPerMeal = Math.round(totalCal / 3);
+      const proteinPerMeal = Math.round(proteinTarget / 3);
 
-function generateMeal(goal){
+      const rice =
+        goal === "bulk" ? "1.5杯" :
+        goal === "cut" ? "0.7杯" :
+        goal === "cut_strict" ? "0.5杯" :
+        "1杯";
 
-  let w=Number(weight.value);
-  let sex=sexEl.value;
+      const carb =
+        goal === "bulk" ? 80 :
+        goal === "cut" ? 37 :
+        goal === "cut_strict" ? 25 :
+        55;
 
-  let cal=(sex==="male")?w*33:w*30;
+      let baseMeals = [
+        { name: "鶏むねソテー", p: 40, f: 10, baseCal: 600 },
+        { name: "サバ定食", p: 28, f: 20, baseCal: 600 },
+        { name: "牛ももステーキ", p: 40, f: 15, baseCal: 700 },
+        { name: "豚ロース生姜焼き", p: 32, f: 25, baseCal: 680 },
+        { name: "親子丼", p: 35, f: 20, baseCal: 650 },
+        { name: "ハンバーグ", p: 28, f: 30, baseCal: 700 }
+      ];
 
-  if(goal==="bulk") cal+=300;
-  if(goal==="cut") cal-=300;
-  if(goal==="cut_strict") cal-=500;
+      if (goal === "cut_strict") {
+        baseMeals = [
+          { name: "鶏むねソテー", p: 40, f: 10, baseCal: 600 },
+          { name: "鶏むね照り焼き", p: 38, f: 12, baseCal: 600 },
+          { name: "サバ（少量）", p: 25, f: 15, baseCal: 500 }
+        ];
+      }
 
-  let proteinTarget=(sex==="male")?w*1.6:w*1.3;
+      function makeMeal(base) {
+        const ratio = Math.max(
+          calPerMeal / base.baseCal,
+          proteinPerMeal / base.p
+        );
 
-  let calPerMeal=Math.round(cal/3);
-  let proteinPerMeal=Math.round(proteinTarget/3);
+        const kcal = Math.round(base.baseCal * ratio);
+        const p = Math.round(base.p * ratio);
+        const f = Math.round(base.f * ratio);
 
-  let rice=
-    goal==="bulk"?"1.5杯":
-    goal==="cut"?"0.7杯":
-    goal==="cut_strict"?"0.5杯":
-    "1杯";
+        return {
+          text: `${base.name}（約${Math.round(150 * ratio)}g＋白米${rice}）
+タンパク質${p}g 脂質${f}g 炭水化物${carb}g 約${kcal}kcal`,
+          protein: p
+        };
+      }
 
-  let carb=
-    goal==="bulk"?80:
-    goal==="cut"?37:
-    goal==="cut_strict"?25:
-    55;
+      const breakfast = makeMeal(baseMeals[Math.floor(Math.random() * baseMeals.length)]);
+      const lunch = makeMeal(baseMeals[Math.floor(Math.random() * baseMeals.length)]);
+      const dinner = makeMeal(baseMeals[Math.floor(Math.random() * baseMeals.length)]);
 
-  let baseMeals=[
-    {name:"鶏むねソテー", p:40, f:10, baseCal:600},
-    {name:"サバ定食", p:28, f:20, baseCal:600},
-    {name:"牛ももステーキ", p:40, f:15, baseCal:700},
-    {name:"豚ロース生姜焼き", p:32, f:25, baseCal:680},
-    {name:"親子丼", p:35, f:20, baseCal:650},
-    {name:"ハンバーグ", p:28, f:30, baseCal:700}
-  ];
+      const totalMealProtein = breakfast.protein + lunch.protein + dinner.protein;
+      const proteinShake = Math.max(0, proteinTarget - totalMealProtein);
 
-  // 減量特化は低脂質優先
-  if(goal==="cut_strict"){
-    baseMeals=[
-      {name:"鶏むねソテー", p:40, f:10, baseCal:600},
-      {name:"鶏むね照り焼き", p:38, f:12, baseCal:600},
-      {name:"サバ（少量）", p:25, f:15, baseCal:500}
-    ];
-  }
-
-  function makeMeal(base){
-
-    let ratio=Math.max(
-      calPerMeal/base.baseCal,
-      proteinPerMeal/base.p
-    );
-
-    let kcal=Math.round(base.baseCal*ratio);
-    let p=Math.round(base.p*ratio);
-    let f=Math.round(base.f*ratio);
-
-    return `${base.name}（約${Math.round(150*ratio)}g＋白米${rice}）
-タンパク質${p}g 脂質${f}g 炭水化物${carb}g 約${kcal}kcal`;
-  }
-
-  let breakfast=makeMeal(baseMeals[Math.floor(Math.random()*baseMeals.length)]);
-  let lunch=makeMeal(baseMeals[Math.floor(Math.random()*baseMeals.length)]);
-  let dinner=makeMeal(baseMeals[Math.floor(Math.random()*baseMeals.length)]);
-
-  let remainCal=cal-(calPerMeal*3);
-  let proteinShake=Math.max(0, Math.round(remainCal/4));
-
-  meal.innerText=
+      meal.innerText =
 `🍽 1日の食事例
 
 🔥目標
-カロリー：約${Math.round(cal)}kcal
-タンパク質：約${Math.round(proteinTarget)}g
+カロリー：約${totalCal}kcal
+タンパク質：約${proteinTarget}g
 
 🍳 朝
-${breakfast}
+${breakfast.text}
 
 🍱 昼
-${lunch}
+${lunch.text}
 
 🍽 夜
-${dinner}
+${dinner.text}
 
 🥤 プロテイン
 約${proteinShake}g`;
-}
-
-function record(success){
-
-  let sex=sexEl.value;
-
-  let log=JSON.parse(localStorage.getItem("log")||"[]");
-
-  log.unshift({
-    date:new Date().toLocaleDateString(),
-    stage,
-    result:success?"成功":"失敗",
-    max:maxWeight
-  });
-
-  localStorage.setItem("log",JSON.stringify(log));
-
-  if(stage===5){
-    if(success){
-      maxWeight+=(sex==="female"?2.5:5);
-      max.value=maxWeight;
     }
-    stage=1;
-  }else{
-    stage+=success?1:-1;
-  }
 
-  if(stage<1)stage=1;
+    function record(success) {
+      const sex = sexSelect.value;
+      const goal = goalSelect.value;
 
-  generateMeal(goalEl.value);
-  updateMenu();
-  loadLog();
-}
+      if (!maxWeight) {
+        alert("先に体重とベンチMAXを入力して開始してください。");
+        return;
+      }
 
-function updateMenu(){
+      const log = JSON.parse(localStorage.getItem("bench_log") || "[]");
 
-  let sex=sexEl.value;
+      log.unshift({
+        date: new Date().toLocaleDateString(),
+        stage,
+        result: success ? "成功" : "失敗",
+        max: maxWeight
+      });
 
-  let w;
-  if(stage===1)w=round(maxWeight*0.65,sex);
-  if(stage===2)w=round(maxWeight*0.75,sex);
-  if(stage===3)w=round(maxWeight*0.85,sex);
-  if(stage===4)w=round(maxWeight*0.92,sex);
-  if(stage===5)w=round(maxWeight+(sex==="female"?2.5:5),sex);
+      localStorage.setItem("bench_log", JSON.stringify(log));
 
-  let rest=stage<=2?"2分":"3分";
+      if (stage === 5) {
+        if (success) {
+          maxWeight += (sex === "female" ? 2.5 : 5);
+          maxInput.value = maxWeight;
+          stage = 1;
+        } else {
+          stage = 4;
+        }
+      } else {
+        if (success) {
+          stage += 1;
+        }
+      }
 
-  const subs=[
-    ["ダンベルプレス","懸垂（できない人はラットプルダウン）","トライセプス"],
-    ["インクラインダンベル","ラットプルダウン","ディップス"],
-    ["ダンベルフライ","懸垂（できない人はラットプルダウン）","ケーブルプレスダウン"],
-    ["インクラインベンチ","ラットプルダウン","ディップス"]
-  ];
+      generateMeal(goal);
+      updateMenu();
+      loadLog();
+    }
 
-  let text=
-`Stage${stage===5?"（MAX挑戦）":stage}
+    function updateMenu() {
+      const sex = sexSelect.value;
+
+      if (!maxWeight) {
+        status.innerText = "";
+        menu.innerText = "";
+        video.innerHTML = "";
+        return;
+      }
+
+      let mainWeight = 0;
+      if (stage === 1) mainWeight = roundWeight(maxWeight * 0.65, sex);
+      if (stage === 2) mainWeight = roundWeight(maxWeight * 0.75, sex);
+      if (stage === 3) mainWeight = roundWeight(maxWeight * 0.85, sex);
+      if (stage === 4) mainWeight = roundWeight(maxWeight * 0.92, sex);
+      if (stage === 5) mainWeight = roundWeight(maxWeight + (sex === "female" ? 2.5 : 5), sex);
+
+      const rest = stage <= 2 ? "2分" : "3分";
+
+      let text =
+`Stage${stage === 5 ? "（MAX挑戦）" : stage}
 
 ①アップ
-ベンチ ${round(maxWeight*0.5,sex)}kg 10回×2（休憩2分）
+ベンチ ${formatWeight(roundWeight(maxWeight * 0.5, sex))}kg 10回×2（休憩2分）
 
 ②メイン
-ベンチ ${w}kg ${stage===5?"1回":"3回×3"} ${stage===5?"":"（休憩"+rest+"）"}
+ベンチ ${formatWeight(mainWeight)}kg ${stage === 5 ? "1回" : "3回×3"} ${stage === 5 ? "" : `（休憩${rest}）`}
 `;
 
-  if(stage!==5){
-    let dumb=round(maxWeight*(stage<=2?0.2:0.3),sex);
-    let s=subs[stage-1];
+      if (stage !== 5) {
+        const dumbbellWeight = roundWeight(maxWeight * (stage <= 2 ? 0.2 : 0.3), sex);
+        const currentSubs = stagePrograms[stage];
 
-    text+=`
+        text += `
 ③補助
-・${s[0]} ${dumb}kg 10回×3（休憩${rest}）
-・${s[1]} 10回×3（休憩${rest}）
-・${s[2]} ${dumb}kg 12回×3（休憩${rest}）`;
-  }
+・${currentSubs[0].name} ${currentSubs[0].useWeight ? `${formatWeight(dumbbellWeight)}kg ` : ""}${currentSubs[0].reps}（休憩${rest}）
+・${currentSubs[1].name}${currentSubs[1].alt ? `（${currentSubs[1].alt}）` : ""} ${currentSubs[1].useWeight ? `${formatWeight(dumbbellWeight)}kg ` : ""}${currentSubs[1].reps}（休憩${rest}）
+・${currentSubs[2].name} ${currentSubs[2].useWeight ? `${formatWeight(dumbbellWeight)}kg ` : ""}${currentSubs[2].reps}（休憩${rest}）`;
 
-  menu.innerText=text;
-  status.innerText=`Stage:${stage} / MAX:${maxWeight}kg`;
+        video.innerHTML = currentSubs.map(item => {
+          const mainVideoId = exerciseVideos[item.name];
+          const altVideoId = item.alt ? exerciseVideos[item.alt] : null;
 
-  video.innerHTML=`
-<iframe width="100%" height="200" src="https://www.youtube.com/embed/W36C1YcI1MM"></iframe>
-<iframe width="100%" height="200" src="https://www.youtube.com/embed/pctyhH_HYxc"></iframe>
-<iframe width="100%" height="200" src="https://www.youtube.com/embed/q2lbpPFzS-M"></iframe>
-<iframe width="100%" height="200" src="https://www.youtube.com/embed/EU5KqPW19I8"></iframe>
-`;
-}
+          return `
+            <div class="mb-6">
+              <p class="font-bold mb-2 text-lg">${item.name} の日本語解説動画</p>
+              <iframe
+                class="rounded"
+                width="100%"
+                height="220"
+                src="https://www.youtube.com/embed/${mainVideoId}"
+                title="${item.name}"
+                frameborder="0"
+                allowfullscreen>
+              </iframe>
 
-function startTimer(){
-  let sec=stage<=2?120:180;
-  let t=setInterval(()=>{
-    let m=Math.floor(sec/60);
-    let s=sec%60;
-    timer.innerText=`休憩 ${m}:${s}`;
-    sec--;
-    if(sec<0){
-      clearInterval(t);
-      timer.innerText="スタート🔥";
+              ${item.alt && altVideoId ? `
+                <p class="font-bold mt-3 mb-2 text-base">代替メニュー：${item.alt} の日本語解説動画</p>
+                <iframe
+                  class="rounded"
+                  width="100%"
+                  height="220"
+                  src="https://www.youtube.com/embed/${altVideoId}"
+                  title="${item.alt}"
+                  frameborder="0"
+                  allowfullscreen>
+                </iframe>
+              ` : ""}
+            </div>
+          `;
+        }).join("");
+      } else {
+        video.innerHTML = `
+          <div class="mb-6">
+            <p class="font-bold mb-2 text-lg">ベンチプレスMAX挑戦の日本語解説動画</p>
+            <iframe
+              class="rounded"
+              width="100%"
+              height="220"
+              src="https://www.youtube.com/embed/${exerciseVideos["ベンチプレスMAX挑戦"]}"
+              title="ベンチプレスMAX挑戦"
+              frameborder="0"
+              allowfullscreen>
+            </iframe>
+          </div>
+        `;
+      }
+
+      menu.innerText = text;
+      status.innerText = `Stage: ${stage} / 現在のMAX設定: ${formatWeight(maxWeight)}kg`;
     }
-  },1000);
-}
 
-function loadLog(){
-  let log=JSON.parse(localStorage.getItem("log")||"[]");
-  let html="";
-  log.forEach(l=>{
-    html+=`<li>${l.date}｜Stage${l.stage}｜${l.result}｜MAX${l.max}kg</li>`;
-  });
-  logList.innerHTML=html;
-}
+    function startTimer() {
+      if (!maxWeight) {
+        alert("先に開始してください。");
+        return;
+      }
 
-function resetLog(){
-  if(confirm("ログ削除する？")){
-    localStorage.removeItem("log");
+      clearInterval(timerInterval);
+
+      let sec = stage <= 2 ? 120 : 180;
+
+      function renderTimer() {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        timer.innerText = `休憩 ${m}:${String(s).padStart(2, "0")}`;
+      }
+
+      renderTimer();
+
+      timerInterval = setInterval(() => {
+        sec--;
+        if (sec < 0) {
+          clearInterval(timerInterval);
+          timer.innerText = "スタート🔥";
+          return;
+        }
+        renderTimer();
+      }, 1000);
+    }
+
+    function loadLog() {
+      const log = JSON.parse(localStorage.getItem("bench_log") || "[]");
+
+      if (log.length === 0) {
+        logList.innerHTML = "<li class='text-gray-500'>まだログはありません</li>";
+        return;
+      }
+
+      logList.innerHTML = log.map(l => {
+        return `<li>${l.date}｜Stage${l.stage}｜${l.result}｜MAX${formatWeight(l.max)}kg</li>`;
+      }).join("");
+    }
+
+    function resetLog() {
+      if (confirm("ログ削除する？")) {
+        localStorage.removeItem("bench_log");
+        loadLog();
+      }
+    }
+
     loadLog();
-  }
-}
-
-const sexEl=document.getElementById("sex");
-const weight=document.getElementById("weight");
-const max=document.getElementById("max");
-const goalEl=document.getElementById("goal");
-const nutrition=document.getElementById("nutrition");
-const meal=document.getElementById("meal");
-const menu=document.getElementById("menu");
-const status=document.getElementById("status");
-const video=document.getElementById("video");
-const timer=document.getElementById("timer");
-const logList=document.getElementById("logList");
-
-</script>
-
+  </script>
 </body>
 </html>
