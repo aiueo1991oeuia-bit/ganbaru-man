@@ -1,554 +1,203 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ベンチプレス100kgチャレンジ</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ベンチプレス100kgチャレンジ</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100 p-4">
-  <h1 class="text-2xl font-bold text-center mb-4">ベンチプレス100kgチャレンジ</h1>
 
-  <div class="grid gap-4 max-w-3xl mx-auto">
+<h1 class="text-2xl font-bold text-center mb-4">ベンチプレス100kgチャレンジ</h1>
 
-    <div class="bg-white p-4 rounded shadow">
-      <select id="sex" class="border p-2 w-full mb-2 rounded">
-        <option value="male">男性</option>
-        <option value="female">女性</option>
-      </select>
+<div class="grid gap-4 max-w-3xl mx-auto">
 
-      <input id="weight" type="number" placeholder="体重(kg)" class="border p-2 w-full mb-2 rounded" />
-      <input id="max" type="number" placeholder="ベンチMAX(kg)" class="border p-2 w-full mb-2 rounded" />
+<!-- 入力 -->
+<div class="bg-white p-4 rounded shadow">
+<select id="sex" class="border p-2 w-full mb-2 rounded">
+<option value="male">男性</option>
+<option value="female">女性</option>
+</select>
 
-      <select id="goal" class="border p-2 w-full mb-2 rounded">
-        <option value="bulk">増量</option>
-        <option value="maintain">維持</option>
-        <option value="cut">減量</option>
-        <option value="cut_strict">減量特化</option>
-      </select>
+<input id="weight" type="number" placeholder="体重(kg)" class="border p-2 w-full mb-2 rounded">
+<input id="max" type="number" placeholder="ベンチMAX(kg)" class="border p-2 w-full mb-2 rounded">
 
-      <button onclick="start()" class="bg-blue-500 hover:bg-blue-600 text-white w-full p-2 rounded">
-        開始
-      </button>
-    </div>
+<select id="goal" class="border p-2 w-full mb-2 rounded">
+<option value="bulk">増量</option>
+<option value="maintain">維持</option>
+<option value="cut">減量</option>
+<option value="cut_strict">減量特化</option>
+</select>
 
-    <div class="bg-white p-4 rounded shadow">
-      <p id="status" class="font-bold mb-2"></p>
-      <p id="nutrition" class="mb-3 whitespace-pre-line"></p>
-      <p id="meal" class="mb-3 whitespace-pre-line"></p>
-      <p id="menu" class="mt-2 whitespace-pre-line"></p>
+<button onclick="start()" class="bg-blue-500 text-white w-full p-2 rounded">開始</button>
+</div>
 
-      <button onclick="startTimer()" class="bg-purple-500 hover:bg-purple-600 text-white w-full p-2 mt-3 rounded">
-        休憩スタート
-      </button>
+<!-- 状態 -->
+<div class="bg-white p-4 rounded shadow">
+<p id="status" class="font-bold"></p>
+<p id="nutrition" class="mt-2 whitespace-pre-line"></p>
+<p id="meal" class="mt-2 whitespace-pre-line"></p>
+<p id="menu" class="mt-2 whitespace-pre-line"></p>
 
-      <p id="timer" class="text-xl text-center mt-2 font-bold"></p>
-      <div id="video" class="mt-4"></div>
-    </div>
+<button onclick="startTimer()" class="bg-purple-500 text-white w-full p-2 mt-3 rounded">休憩スタート</button>
+<p id="timer" class="text-xl text-center mt-2 font-bold"></p>
 
-    <div class="bg-white p-4 rounded shadow">
-      <button onclick="record(true)" class="bg-green-500 hover:bg-green-600 text-white w-full p-2 mb-2 rounded">
-        成功
-      </button>
-      <button onclick="record(false)" class="bg-red-500 hover:bg-red-600 text-white w-full p-2 rounded">
-        失敗
-      </button>
-    </div>
+<div id="video" class="mt-4"></div>
+</div>
 
-    <div class="bg-white p-4 rounded shadow">
-      <h2 class="font-bold mb-2">ログ</h2>
-      <ul id="logList" class="text-sm space-y-1"></ul>
-      <button onclick="resetLog()" class="bg-gray-400 hover:bg-gray-500 text-white w-full p-2 mt-2 rounded">
-        ログ削除
-      </button>
-    </div>
+<!-- 成功失敗 -->
+<div class="bg-white p-4 rounded shadow">
+<button onclick="record(true)" class="bg-green-500 text-white w-full p-2 mb-2 rounded">成功</button>
+<button onclick="record(false)" class="bg-red-500 text-white w-full p-2 rounded">失敗</button>
+</div>
 
-  </div>
+<!-- ログ -->
+<div class="bg-white p-4 rounded shadow">
+<h2 class="font-bold mb-2">ログ</h2>
+<ul id="logList" class="text-sm"></ul>
+<button onclick="resetLog()" class="bg-gray-400 text-white w-full p-2 mt-2 rounded">ログ削除</button>
+</div>
 
-  <script>
-    let stage = 1;
-    let maxWeight = 0;
-    let timerInterval = null;
+</div>
 
-    const sexSelect = document.getElementById("sex");
-    const weightInput = document.getElementById("weight");
-    const maxInput = document.getElementById("max");
-    const goalSelect = document.getElementById("goal");
-    const nutrition = document.getElementById("nutrition");
-    const meal = document.getElementById("meal");
-    const menu = document.getElementById("menu");
-    const status = document.getElementById("status");
-    const video = document.getElementById("video");
-    const timer = document.getElementById("timer");
-    const logList = document.getElementById("logList");
+<script>
 
-    const mainBenchVideo = {
-      name: "ベンチプレス",
-      title: "【初心者向け】正しいベンチプレスのやり方",
-      id: "W36C1YcI1MM"
-    };
+let stage = 1;
+let maxWeight = 0;
+let timerInterval;
 
-    const stagePrograms = {
-      1: [
-        {
-          name: "ダンベルプレス",
-          reps: "10回×3",
-          useWeight: true,
-          video: {
-            title: "ダンベルプレスの正しいやり方",
-            id: "pJgZociaUes"
-          }
-        },
-        {
-          name: "懸垂",
-          reps: "10回×3",
-          useWeight: false,
-          video: {
-            title: "懸垂(チンニング)のやり方",
-            id: "40Sq7kkUuWM"
-          },
-          alt: {
-            name: "ラットプルダウン",
-            video: {
-              title: "ラットプルダウンのやり方",
-              id: "aN98D1YD00o"
-            }
-          }
-        },
-        {
-          name: "トライセプスプレスダウン",
-          reps: "12回×3",
-          useWeight: false,
-          video: {
-            title: "トライセプスプレスダウンの正しいやり方",
-            id: "wdVXHWTfC18"
-          }
-        }
-      ],
-      2: [
-        {
-          name: "インクラインダンベルプレス",
-          reps: "10回×3",
-          useWeight: true,
-          video: {
-            title: "インクラインダンベルプレスのやり方",
-            id: "Ujp-saRDMEg"
-          }
-        },
-        {
-          name: "ラットプルダウン",
-          reps: "10回×3",
-          useWeight: false,
-          video: {
-            title: "ラットプルダウンのやり方",
-            id: "aN98D1YD00o"
-          }
-        },
-        {
-          name: "ディップス",
-          reps: "10回×3",
-          useWeight: false,
-          video: {
-            title: "ディップスの正しいやり方",
-            id: "a_OCI-7pFBk"
-          }
-        }
-      ],
-      3: [
-        {
-          name: "ダンベルフライ",
-          reps: "10回×3",
-          useWeight: true,
-          video: {
-            title: "ダンベルフライの正しいやり方",
-            id: "xDLBDkICBS8"
-          }
-        },
-        {
-          name: "懸垂",
-          reps: "10回×3",
-          useWeight: false,
-          video: {
-            title: "懸垂(チンニング)のやり方",
-            id: "40Sq7kkUuWM"
-          },
-          alt: {
-            name: "ラットプルダウン",
-            video: {
-              title: "ラットプルダウンのやり方",
-              id: "aN98D1YD00o"
-            }
-          }
-        },
-        {
-          name: "ケーブルプレスダウン",
-          reps: "12回×3",
-          useWeight: false,
-          video: {
-            title: "ケーブルプレスダウンの正しいやり方",
-            id: "wdVXHWTfC18"
-          }
-        }
-      ],
-      4: [
-        {
-          name: "インクラインベンチプレス",
-          reps: "10回×3",
-          useWeight: true,
-          video: {
-            title: "インクラインベンチプレスのやり方",
-            id: "Unc20x4ggVA"
-          }
-        },
-        {
-          name: "ラットプルダウン",
-          reps: "10回×3",
-          useWeight: false,
-          video: {
-            title: "ラットプルダウンのやり方",
-            id: "aN98D1YD00o"
-          }
-        },
-        {
-          name: "ディップス",
-          reps: "10回×3",
-          useWeight: false,
-          video: {
-            title: "ディップスの正しいやり方",
-            id: "a_OCI-7pFBk"
-          }
-        }
-      ]
-    };
+function roundWeight(num, sex){
+  return sex==="female"
+    ? Math.round(num/2.5)*2.5
+    : Math.round(num/5)*5;
+}
 
-    function roundWeight(num, sex) {
-      return sex === "female"
-        ? Math.round(num / 2.5) * 2.5
-        : Math.round(num / 5) * 5;
-    }
+function start(){
+  const w = Number(weight.value);
+  const m = Number(max.value);
+  const sexVal = sex.value;
+  const goalVal = goal.value;
 
-    function formatWeight(num) {
-      return Number.isInteger(num) ? `${num}` : `${num.toFixed(1)}`;
-    }
+  maxWeight = roundWeight(m, sexVal);
+  stage = 1;
 
-    function getCalories(w, sex, goal) {
-      let cal = (sex === "male") ? w * 33 : w * 30;
-      if (goal === "bulk") cal += 300;
-      if (goal === "cut") cal -= 300;
-      if (goal === "cut_strict") cal -= 500;
-      return Math.round(cal);
-    }
+  nutrition.innerText =
+    `タンパク質 ${Math.round(w*1.6)}g\nカロリー ${Math.round(w*33)}kcal`;
 
-    function getProtein(w, sex) {
-      return Math.round((sex === "male") ? w * 1.6 : w * 1.3);
-    }
+  generateMeal(goalVal);
+  updateMenu();
+  loadLog();
+}
 
-    function start() {
-      const w = Number(weightInput.value);
-      const inputMax = Number(maxInput.value);
-      const sex = sexSelect.value;
-      const goal = goalSelect.value;
+function generateMeal(goal){
 
-      if (!w || !inputMax || w <= 0 || inputMax <= 0) {
-        alert("体重とベンチMAXを正しく入力してください。");
-        return;
-      }
+  const w = Number(weight.value);
+  const proteinLimit = Math.round(w*0.4);
 
-      maxWeight = roundWeight(inputMax, sex);
-      stage = 1;
+  const breakfast = {
+    text:`ギリシャヨーグルト200g＋プロテイン
+タンパク質30g / 約250kcal`,
+    protein:30
+  };
 
-      nutrition.innerText =
-        `1日の目安：タンパク質 ${getProtein(w, sex)}g / カロリー ${getCalories(w, sex, goal)}kcal`;
+  const meals = [
+    {name:"鶏むね",p:40,f:10},
+    {name:"サバ",p:28,f:20},
+    {name:"牛もも",p:40,f:15},
+    {name:"豚ロース",p:32,f:25},
+    {name:"親子丼",p:35,f:20},
+    {name:"ハンバーグ",p:28,f:30}
+  ];
 
-      generateMeal(goal);
-      updateMenu();
-      loadLog();
-      timer.innerText = "";
-    }
+  let pool=[...meals];
+  let lunch=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+  let dinner=pool[Math.floor(Math.random()*pool.length)];
 
-    function generateMeal(goal) {
-      const w = Number(weightInput.value);
-      const sex = sexSelect.value;
+  meal.innerText =
+`🍽 食事例
 
-      if (!w || w <= 0) {
-        meal.innerText = "";
-        return;
-      }
-
-      const totalCal = getCalories(w, sex, goal);
-      const proteinTarget = getProtein(w, sex);
-
-      const proteinLimitPerMeal = Math.max(20, Math.round(w * 0.4));
-      const calPerMeal = Math.round(totalCal / 3);
-      const proteinPerMeal = Math.min(
-        Math.round(proteinTarget / 3),
-        proteinLimitPerMeal
-      );
-
-      const rice =
-        goal === "bulk" ? "1.5杯" :
-        goal === "cut" ? "0.7杯" :
-        goal === "cut_strict" ? "0.5杯" :
-        "1杯";
-
-      const carb =
-        goal === "bulk" ? 80 :
-        goal === "cut" ? 37 :
-        goal === "cut_strict" ? 25 :
-        55;
-
-      let baseMeals = [
-        { name: "鶏むねソテー", p: 40, f: 10, baseCal: 600 },
-        { name: "サバ定食", p: 28, f: 20, baseCal: 600 },
-        { name: "牛ももステーキ", p: 40, f: 15, baseCal: 700 },
-        { name: "豚ロース生姜焼き", p: 32, f: 25, baseCal: 680 },
-        { name: "親子丼", p: 35, f: 20, baseCal: 650 },
-        { name: "ハンバーグ", p: 28, f: 30, baseCal: 700 }
-      ];
-
-      if (goal === "cut_strict") {
-        baseMeals = [
-          { name: "鶏むねソテー", p: 40, f: 10, baseCal: 600 },
-          { name: "鶏むね照り焼き", p: 38, f: 12, baseCal: 600 },
-          { name: "サバ（少量）", p: 25, f: 15, baseCal: 500 }
-        ];
-      }
-
-      function makeMeal(base) {
-        const ratio = Math.max(calPerMeal / base.baseCal, proteinPerMeal / base.p);
-        const kcal = Math.round(base.baseCal * ratio);
-        const p = Math.min(Math.round(base.p * ratio), proteinLimitPerMeal);
-        const f = Math.round(base.f * ratio);
-
-        return {
-          text: `${base.name}（約${Math.round(150 * ratio)}g＋白米${rice}）
-タンパク質${p}g 脂質${f}g 炭水化物${carb}g 約${kcal}kcal`,
-          protein: p
-        };
-      }
-
-      const breakfast = makeMeal(baseMeals[Math.floor(Math.random() * baseMeals.length)]);
-      const lunch = makeMeal(baseMeals[Math.floor(Math.random() * baseMeals.length)]);
-      const dinner = makeMeal(baseMeals[Math.floor(Math.random() * baseMeals.length)]);
-
-      const totalMealProtein = breakfast.protein + lunch.protein + dinner.protein;
-      const proteinShake = Math.max(0, proteinTarget - totalMealProtein);
-      const proteinShakeServings = proteinShake === 0 ? 0 : Math.ceil(proteinShake / proteinLimitPerMeal);
-
-      meal.innerText =
-`🍽 1日の食事例
-
-🔥目標
-カロリー：約${totalCal}kcal
-タンパク質：約${proteinTarget}g
-
-🍳 朝
+朝
 ${breakfast.text}
 
-🍱 昼
-${lunch.text}
+昼
+${lunch.name}
 
-🍽 夜
-${dinner.text}
+夜
+${dinner.name}`;
+}
 
-🥤 プロテイン
-約${proteinShake}g${proteinShake > 0 ? `（${proteinShakeServings}回に分けて摂取）` : ""}
+function record(success){
 
-📊 合計（食事）
-タンパク質 ${totalMealProtein}g`;
+  const sexVal = sex.value;
+
+  if(stage===5){
+    if(success){
+      maxWeight += (sexVal==="female"?2.5:5);
+      max.value = maxWeight;
+      stage=1;
+    }else{
+      stage=4;
     }
+  }else{
+    if(success) stage++;
+  }
 
-    function record(success) {
-      const sex = sexSelect.value;
-      const goal = goalSelect.value;
+  updateMenu();
+  loadLog();
+}
 
-      if (!maxWeight) {
-        alert("先に開始してください。");
-        return;
-      }
+function updateMenu(){
 
-      const log = JSON.parse(localStorage.getItem("bench_log") || "[]");
+  const sexVal = sex.value;
 
-      log.unshift({
-        date: new Date().toLocaleDateString(),
-        stage,
-        result: success ? "成功" : "失敗",
-        max: maxWeight
-      });
+  let weightMain;
+  if(stage===1) weightMain = maxWeight*0.65;
+  if(stage===2) weightMain = maxWeight*0.75;
+  if(stage===3) weightMain = maxWeight*0.85;
+  if(stage===4) weightMain = maxWeight*0.92;
+  if(stage===5) weightMain = maxWeight + (sexVal==="female"?2.5:5);
 
-      localStorage.setItem("bench_log", JSON.stringify(log));
+  weightMain = roundWeight(weightMain, sexVal);
 
-      if (stage === 5) {
-        if (success) {
-          maxWeight += (sex === "female" ? 2.5 : 5);
-          maxInput.value = maxWeight;
-          stage = 1;
-        } else {
-          stage = 4;
-        }
-      } else {
-        if (success) {
-          stage++;
-        }
-      }
+  const rest = stage<=2 ? "2分" : "3分";
 
-      generateMeal(goal);
-      updateMenu();
-      loadLog();
-    }
+  menu.innerText =
+`Stage${stage}
 
-    function getMainWeight() {
-      const sex = sexSelect.value;
-      if (stage === 1) return roundWeight(maxWeight * 0.65, sex);
-      if (stage === 2) return roundWeight(maxWeight * 0.75, sex);
-      if (stage === 3) return roundWeight(maxWeight * 0.85, sex);
-      if (stage === 4) return roundWeight(maxWeight * 0.92, sex);
-      if (stage === 5) return roundWeight(maxWeight + (sex === "female" ? 2.5 : 5), sex);
-      return 0;
-    }
+ベンチ ${weightMain}kg
+休憩 ${stage===5?"なし":rest}`;
 
-    function renderVideoCard(label, videoData) {
-      const youtubeUrl = `https://www.youtube.com/watch?v=${videoData.id}`;
-      return `
-        <div class="bg-gray-50 border rounded p-3 mb-4">
-          <p class="font-bold mb-2">${label}</p>
-          <p class="text-sm text-gray-700 mb-2">${videoData.title}</p>
-          <iframe
-            class="rounded w-full"
-            height="220"
-            src="https://www.youtube.com/embed/${videoData.id}"
-            title="${videoData.title}"
-            frameborder="0"
-            allowfullscreen>
-          </iframe>
-          <a
-            href="${youtubeUrl}"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-block mt-2 text-blue-600 underline text-sm">
-            YouTubeで開く
-          </a>
-        </div>
-      `;
-    }
+  status.innerText = `MAX:${maxWeight}kg`;
 
-    function updateMenu() {
-      if (!maxWeight) {
-        status.innerText = "";
-        menu.innerText = "";
-        video.innerHTML = "";
-        return;
-      }
+}
 
-      const sex = sexSelect.value;
-      const mainWeight = getMainWeight();
-      const rest = stage <= 2 ? "2分" : "3分";
+function startTimer(){
+  let sec = stage<=2 ? 120 : 180;
 
-      let text =
-`Stage${stage === 5 ? "（MAX挑戦）" : stage}
+  clearInterval(timerInterval);
 
-①アップ
-ベンチ ${formatWeight(roundWeight(maxWeight * 0.5, sex))}kg 10回×2（休憩2分）
+  timerInterval = setInterval(()=>{
+    let m=Math.floor(sec/60);
+    let s=sec%60;
+    timer.innerText=`${m}:${s}`;
+    sec--;
+  },1000);
+}
 
-②メイン
-ベンチ ${formatWeight(mainWeight)}kg ${stage === 5 ? "1回" : "3回×3"} ${stage === 5 ? "" : `（休憩${rest}）`}
-`;
+function loadLog(){
+  let log = JSON.parse(localStorage.getItem("bench_log")||"[]");
+  logList.innerHTML = log.map(l=>`<li>${l.date} ${l.result}</li>`).join("");
+}
 
-      if (stage !== 5) {
-        const subs = stagePrograms[stage];
-        const dumb = roundWeight(maxWeight * (stage <= 2 ? 0.2 : 0.3), sex);
-
-        text += `
-③補助
-・${subs[0].name} ${subs[0].useWeight ? `${formatWeight(dumb)}kg ` : ""}${subs[0].reps}（休憩${rest}）
-・${subs[1].name}${subs[1].alt ? `（できない人は${subs[1].alt.name}）` : ""} ${subs[1].useWeight ? `${formatWeight(dumb)}kg ` : ""}${subs[1].reps}（休憩${rest}）
-・${subs[2].name} ${subs[2].useWeight ? `${formatWeight(dumb)}kg ` : ""}${subs[2].reps}（休憩${rest}）`;
-
-        let html = `
-          <div class="mb-4">
-            <p class="font-bold text-lg mb-2">この日の解説動画</p>
-          </div>
-        `;
-
-        subs.forEach((item, index) => {
-          html += renderVideoCard(`補助①${index === 0 ? "" : ""} ${item.name}`, item.video);
-          if (item.alt) {
-            html += renderVideoCard(`代替メニュー ${item.alt.name}`, item.alt.video);
-          }
-        });
-
-        video.innerHTML = html;
-      } else {
-        video.innerHTML = `
-          <div class="mb-4">
-            <p class="font-bold text-lg mb-2">MAX挑戦の解説動画</p>
-            ${renderVideoCard("ベンチプレスMAX挑戦", mainBenchVideo)}
-          </div>
-        `;
-      }
-
-      menu.innerText = text;
-      status.innerText = `Stage:${stage} / MAX:${formatWeight(maxWeight)}kg`;
-    }
-
-    function startTimer() {
-      if (!maxWeight) {
-        alert("先に開始してください。");
-        return;
-      }
-
-      let sec = stage <= 2 ? 120 : 180;
-      clearInterval(timerInterval);
-
-      function draw() {
-        const m = Math.floor(sec / 60);
-        const s = sec % 60;
-        timer.innerText = `休憩 ${m}:${String(s).padStart(2, "0")}`;
-      }
-
-      draw();
-
-      timerInterval = setInterval(() => {
-        sec--;
-        if (sec < 0) {
-          clearInterval(timerInterval);
-          timer.innerText = "スタート🔥";
-          return;
-        }
-        draw();
-      }, 1000);
-    }
-
-    function loadLog() {
-      const log = JSON.parse(localStorage.getItem("bench_log") || "[]");
-
-      if (log.length === 0) {
-        logList.innerHTML = "<li class='text-gray-500'>まだログはありません</li>";
-        return;
-      }
-
-      logList.innerHTML = log
-        .map(l => `<li>${l.date}｜Stage${l.stage}｜${l.result}｜MAX${formatWeight(l.max)}kg</li>`)
-        .join("");
-    }
-
-    function resetLog() {
-      if (confirm("ログ削除する？")) {
-        localStorage.removeItem("bench_log");
-        loadLog();
-      }
-    }
-
-    weightInput.addEventListener("change", () => {
-      if (weightInput.value) generateMeal(goalSelect.value);
-    });
-
-    goalSelect.addEventListener("change", () => {
-      if (weightInput.value) generateMeal(goalSelect.value);
-    });
-
+function resetLog(){
+  if(confirm("削除する？")){
+    localStorage.removeItem("bench_log");
     loadLog();
-  </script>
+  }
+}
+
+</script>
+
 </body>
 </html>
