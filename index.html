@@ -13,6 +13,7 @@
 
 <div class="grid gap-4">
 
+<!-- 入力 -->
 <div class="bg-white p-4 rounded shadow">
 <select id="sex" class="border p-1 w-full mb-2">
 <option value="male">男性</option>
@@ -31,6 +32,7 @@
 <button onclick="start()" class="bg-blue-500 text-white w-full p-2 rounded">開始</button>
 </div>
 
+<!-- 表示 -->
 <div class="bg-white p-4 rounded shadow">
 <p id="status"></p>
 <p id="nutrition"></p>
@@ -46,143 +48,157 @@
 <div id="video" class="mt-4"></div>
 </div>
 
+<!-- 成功失敗 -->
 <div class="bg-white p-4 rounded shadow">
 <button onclick="record(true)" class="bg-green-500 text-white w-full p-2 mb-2 rounded">成功</button>
 <button onclick="record(false)" class="bg-red-500 text-white w-full p-2 rounded">失敗</button>
+</div>
+
+<!-- ログ -->
+<div class="bg-white p-4 rounded shadow">
+<h2 class="font-bold mb-2">ログ</h2>
+<ul id="logList"></ul>
+<button onclick="resetLog()" class="bg-gray-400 text-white w-full p-2 mt-2 rounded">削除</button>
 </div>
 
 </div>
 
 <script>
 
-let stage = 1;
-let maxWeight = 0;
+let stage=1;
+let maxWeight=0;
 
-function round(num, sex){
+function round(num,sex){
   return sex==="female"
-    ? Math.round(num/2.5)*2.5
-    : Math.round(num/5)*5;
+  ? Math.round(num/2.5)*2.5
+  : Math.round(num/5)*5;
 }
 
 function start(){
 
-  let w = Number(weight.value);
-  let sex = sexEl.value;
-  let goal = goalEl.value;
+  let w=Number(weight.value);
+  let sex=sexEl.value;
+  let goal=goalEl.value;
 
-  maxWeight = round(Number(max.value), sex);
-  stage = 1;
+  maxWeight=round(Number(max.value),sex);
+  stage=1;
 
-  let cal = (sex==="male") ? w*33 : w*30;
-  if(goal==="bulk") cal+=300;
-  if(goal==="cut") cal-=300;
+  // 栄養
+  let cal=(sex==="male")?w*33:w*30;
+  if(goal==="bulk")cal+=300;
+  if(goal==="cut")cal-=300;
 
-  let protein = (sex==="male") ? w*1.6 : w*1.3;
+  let protein=(sex==="male")?w*1.6:w*1.3;
 
-  nutrition.innerText =
-    `タンパク質 ${Math.round(protein)}g / カロリー ${Math.round(cal)}kcal`;
+  nutrition.innerText=
+  `1日：タンパク質${Math.round(protein)}g / ${Math.round(cal)}kcal`;
 
   generateMeal(goal);
 
   updateMenu();
+  loadLog();
 }
-
-const sexEl = document.getElementById("sex");
-const weight = document.getElementById("weight");
-const max = document.getElementById("max");
-const goalEl = document.getElementById("goal");
-const nutrition = document.getElementById("nutrition");
 
 function generateMeal(goal){
 
-  let rice = goal==="bulk"?"1.5杯":goal==="cut"?"0.7杯":"1杯";
+  let rice=goal==="bulk"?"1.5杯":goal==="cut"?"0.7杯":"1杯";
+  let carb=goal==="bulk"?80:goal==="cut"?37:55;
 
   let meals=[
-    `牛丼（牛バラ150g＋白米${rice}）`,
-    `親子丼（鶏もも150g＋卵2個＋白米${rice}）`,
-    `サバ定食（サバ＋白米${rice}）`,
-    `豚生姜焼き（豚ロース150g＋白米${rice}）`,
-    `ステーキ（牛もも200g＋白米${rice}）`
+`牛丼（牛バラ150g＋白米${rice}）
+P30 F40 C${carb} 約750kcal`,
+
+`親子丼（鶏もも150g＋卵2個＋白米${rice}）
+P35 F20 C${carb} 約650kcal`,
+
+`サバ定食（サバ＋白米${rice}）
+P28 F20 C${carb} 約600kcal`
   ];
 
-  meal.innerText="食事例：\n"+meals[Math.floor(Math.random()*meals.length)];
+  meal.innerText="食事例：\n"+meals[Math.floor(Math.random()*3)];
 }
 
 function record(success){
 
-  let sex = sexEl.value;
+  let sex=sexEl.value;
 
+  // ログ
+  let log=JSON.parse(localStorage.getItem("log")||"[]");
+
+  log.unshift({
+    date:new Date().toLocaleDateString(),
+    stage,
+    result:success?"成功":"失敗",
+    max:maxWeight
+  });
+
+  localStorage.setItem("log",JSON.stringify(log));
+
+  // 進行
   if(stage===5){
     if(success){
-      maxWeight += (sex==="female"?2.5:5);
+      maxWeight+= (sex==="female"?2.5:5);
+      max.value=maxWeight; // ←ここ重要
     }
     stage=1;
   }else{
-    stage += success?1:-1;
+    stage+= success?1:-1;
   }
 
-  if(stage<1) stage=1;
+  if(stage<1)stage=1;
 
+  generateMeal(goalEl.value);
   updateMenu();
+  loadLog();
 }
 
 function updateMenu(){
 
-  let sex = sexEl.value;
+  let sex=sexEl.value;
 
   let w;
-  if(stage===1) w=round(maxWeight*0.65,sex);
-  if(stage===2) w=round(maxWeight*0.75,sex);
-  if(stage===3) w=round(maxWeight*0.85,sex);
-  if(stage===4) w=round(maxWeight*0.92,sex);
-  if(stage===5) w=round(maxWeight+(sex==="female"?2.5:5),sex);
+  if(stage===1)w=round(maxWeight*0.65,sex);
+  if(stage===2)w=round(maxWeight*0.75,sex);
+  if(stage===3)w=round(maxWeight*0.85,sex);
+  if(stage===4)w=round(maxWeight*0.92,sex);
+  if(stage===5)w=round(maxWeight+(sex==="female"?2.5:5),sex);
 
-  let light = stage<=2;
-  let rest = light ? "2分" : "3分";
+  let rest=stage<=2?"2分":"3分";
 
-  let dumb = round(maxWeight*(light?0.2:0.3),sex);
+  let text=
+`Stage${stage}
 
-  let menu =
-`Stage${stage===5?"（MAX）":stage}
-
-①アップ
+アップ
 ベンチ ${round(maxWeight*0.5,sex)}kg 10回×2（休憩2分）
 
-②メイン
+メイン
 ベンチ ${w}kg ${stage===5?"1回":"3回×3"} ${stage===5?"":"（休憩"+rest+"）"}
 `;
 
   if(stage!==5){
-    menu+=`
-③補助
-・ダンベルプレス ${dumb}kg 10回×3（休憩${rest}）
-・懸垂（できない人はラットプルダウン）10回×3（休憩${rest}）
-・トライセプス ${dumb}kg 12回×3（休憩${rest})}`;
+    let dumb=round(maxWeight*(stage<=2?0.2:0.3),sex);
+
+    text+=`
+補助
+ダンベル ${dumb}kg 10回×3（休憩${rest}）
+懸垂 10回×3（休憩${rest}）
+トライセプス ${dumb}kg 12回×3（休憩${rest})}`;
   }
 
-  document.getElementById("menu").innerText = menu;
+  menu.innerText=text;
 
-  status.innerText = `Stage:${stage} / MAX:${maxWeight}kg`;
+  status.innerText=`Stage:${stage} / MAX:${maxWeight}kg`;
 
-  // 動画完全一致
-  let videos = [
-    "W36C1YcI1MM", // ベンチ
-    "pctyhH_HYxc", // ダンベル
-    "q2lbpPFzS-M", // 懸垂
-    "EU5KqPW19I8"  // 三頭
-  ];
-
-  let html="<p>🎥 種目解説</p>";
-
-  videos.forEach(v=>{
-    html+=`<iframe width="100%" height="200" src="https://www.youtube.com/embed/${v}"></iframe>`;
-  });
-
-  video.innerHTML=html;
+  video.innerHTML=`
+<iframe width="100%" height="200" src="https://www.youtube.com/embed/W36C1YcI1MM"></iframe>
+<iframe width="100%" height="200" src="https://www.youtube.com/embed/pctyhH_HYxc"></iframe>
+<iframe width="100%" height="200" src="https://www.youtube.com/embed/q2lbpPFzS-M"></iframe>
+<iframe width="100%" height="200" src="https://www.youtube.com/embed/EU5KqPW19I8"></iframe>
+`;
 }
 
 function startTimer(){
-  let sec = (stage<=2)?120:180;
+  let sec=stage<=2?120:180;
   let t=setInterval(()=>{
     let m=Math.floor(sec/60);
     let s=sec%60;
@@ -194,6 +210,34 @@ function startTimer(){
     }
   },1000);
 }
+
+function loadLog(){
+  let log=JSON.parse(localStorage.getItem("log")||"[]");
+  let html="";
+  log.forEach(l=>{
+    html+=`<li>${l.date} Stage${l.stage} ${l.result} MAX${l.max}</li>`;
+  });
+  logList.innerHTML=html;
+}
+
+function resetLog(){
+  localStorage.removeItem("log");
+  loadLog();
+}
+
+// DOM
+const sexEl=document.getElementById("sex");
+const weight=document.getElementById("weight");
+const max=document.getElementById("max");
+const goalEl=document.getElementById("goal");
+
+const nutrition=document.getElementById("nutrition");
+const meal=document.getElementById("meal");
+const menu=document.getElementById("menu");
+const status=document.getElementById("status");
+const video=document.getElementById("video");
+const timer=document.getElementById("timer");
+const logList=document.getElementById("logList");
 
 </script>
 
