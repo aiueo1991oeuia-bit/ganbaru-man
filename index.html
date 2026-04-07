@@ -131,7 +131,23 @@ function generateMeal(goal){
 タンパク質32g 脂質18g 炭水化物${carb}g 約620kcal`
 ];
 
-  meal.innerText="食事例（1食）：\n"+meals[Math.floor(Math.random()*meals.length)];
+  let breakfast=meals[Math.floor(Math.random()*meals.length)];
+  let lunch=meals[Math.floor(Math.random()*meals.length)];
+  let dinner=meals[Math.floor(Math.random()*meals.length)];
+
+  meal.innerText=
+`🍽 1日の食事例
+
+🍳 朝
+${breakfast}
+
+🍱 昼
+${lunch}
+
+🍽 夜
+${dinner}
+
+🥤 プロテイン 約25g`;
 }
 
 function record(success){
@@ -180,9 +196,9 @@ function updateMenu(){
   let rest=stage<=2?"2分":"3分";
 
   const subs=[
-    ["ダンベルプレス","懸垂","トライセプス"],
+    ["ダンベルプレス","懸垂（できない人はラットプルダウン）","トライセプス"],
     ["インクラインダンベル","ラットプルダウン","ディップス"],
-    ["ダンベルフライ","懸垂","ケーブルプレスダウン"],
+    ["ダンベルフライ","懸垂（できない人はラットプルダウン）","ケーブルプレスダウン"],
     ["インクラインベンチ","ラットプルダウン","ディップス"]
   ];
 
@@ -204,7 +220,8 @@ function updateMenu(){
 ③補助
 ・${s[0]} ${dumb}kg 10回×3（休憩${rest}）
 ・${s[1]} 10回×3（休憩${rest}）
-・${s[2]} ${dumb}kg 12回×3（休憩${rest})}
+・${s[2]} ${dumb}kg 12回×3（休憩${rest}）`;
+  }
 
   menu.innerText=text;
   status.innerText=`Stage:${stage} / MAX:${maxWeight}kg`;
@@ -263,7 +280,3 @@ const logList=document.getElementById("logList");
 
 </body>
 </html>
-
-<button onclick="location.href='meal.html'" 
-class="bg-yellow-500 text-white w-full p-2 mt-2 rounded">
-</button>
