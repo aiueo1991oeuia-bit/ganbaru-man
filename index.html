@@ -1,66 +1,62 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Training Log & Calc</title>
-<style>
-body { font-family: sans-serif; background: #f4f4f4; padding: 15px; color: #333; }
-.card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
-h2 { font-size: 1.2rem; margin-top: 0; color: #2c3e50; }
-input, select, button { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
-button.secondary { background: #6c757d; }
-button.success { background: #28a745; width: 48%; }
-button.fail { background: #dc3545; width: 48%; }
-#menu { background: #e9ecef; padding: 10px; border-radius: 5px; white-space: pre-wrap; font-family: monospace; }
-.flex { display: flex; justify-content: space-between; }
-ul { list-style: none; padding: 0; font-size: 0.9rem; }
-li { border-bottom: 1px solid #eee; padding: 5px 0; }
-#timer { font-size: 1.5rem; text-align: center; font-weight: bold; color: #d63384; margin: 10px 0; }
-#video iframe { border-radius: 10px; }
-#advice { font-size: 0.9rem; color: #555; margin-top: 5px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Log & Calc</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 15px; color: #333; }
+        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        h2 { font-size: 1.2rem; margin-top: 0; color: #2c3e50; }
+        input, select, button { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+        button.secondary { background: #6c757d; }
+        button.success { background: #28a745; width: 48%; }
+        button.fail { background: #dc3545; width: 48%; }
+        #menu { background: #e9ecef; padding: 10px; border-radius: 5px; white-space: pre-wrap; font-family: monospace; }
+        .flex { display: flex; justify-content: space-between; }
+        ul { list-style: none; padding: 0; font-size: 0.9rem; }
+        li { border-bottom: 1px solid #eee; padding: 5px 0; }
+        #timer { font-size: 1.5rem; text-align: center; font-weight: bold; color: #d63384; margin: 10px 0; }
+    </style>
 </head>
 <body>
 
 <div class="card">
-<h2>基本設定</h2>
-<input type="number" id="weight" placeholder="現在の体重 (kg)" value="77">
-<input type="number" id="max" placeholder="ベンチ初期MAX (kg)" value="100">
-<select id="sex">
-<option value="male">男性</option>
-<option value="female">女性</option>
-</select>
-<select id="goal">
-<option value="maintain">維持</option>
-<option value="bulk">増量 (+300kcal)</option>
-<option value="cut">減量 (-300kcal)</option>
-</select>
-<button onclick="start()">計算・スタート</button>
+    <h2>基本設定</h2>
+    <input type="number" id="weight" placeholder="現在の体重 (kg)" value="77">
+    <input type="number" id="max" placeholder="ベンチ初期MAX (kg)" value="100">
+    <select id="sex">
+        <option value="male">男性</option>
+        <option value="female">女性</option>
+    </select>
+    <select id="goal">
+        <option value="maintain">維持</option>
+        <option value="bulk">増量 (+300kcal)</option>
+        <option value="cut">減量 (-300kcal)</option>
+    </select>
+    <button onclick="start()">計算・スタート</button>
 </div>
 
 <div class="card">
-<h2>本日のメニュー</h2>
-<div id="status" style="font-weight: bold; margin-bottom: 10px;">設定を入力してください</div>
-<div id="nutrition" style="margin-bottom: 10px; color: #555;"></div>
-<div id="menu">メニューはここに表示されます</div>
-<div id="video"></div>
-<div id="advice"></div>
-
-<div id="timer">インターバル</div>
-<button class="secondary" onclick="startTimer()">タイマー開始</button>
+    <h2>本日のメニュー</h2>
+    <div id="status" style="font-weight: bold; margin-bottom: 10px;">設定を入力してください</div>
+    <div id="nutrition" style="margin-bottom: 10px; color: #555;"></div>
+    <div id="menu">メニューはここに表示されます</div>
+    
+    <div id="timer">インターバル</div>
+    <button class="secondary" onclick="startTimer()">タイマー開始</button>
 </div>
 
 <div class="card">
-<h2>記録</h2>
-<div class="flex">
-<button class="success" onclick="record(true)">成功</button>
-<button class="fail" onclick="record(false)">失敗</button>
-</div>
-<h3>過去ログ</h3>
-<ul id="logList"></ul>
-<button class="secondary" onclick="resetLog()" style="margin-top:10px;">ログ消去</button>
+    <h2>記録</h2>
+    <div class="flex">
+        <button class="success" onclick="record(true)">成功</button>
+        <button class="fail" onclick="record(false)">失敗</button>
+    </div>
+    <h3>過去ログ</h3>
+    <ul id="logList"></ul>
+    <button class="secondary" onclick="resetLog()" style="margin-top:10px;">ログ消去</button>
 </div>
 
 <script>
@@ -68,23 +64,6 @@ let stage = 1;
 let maxWeight = Number(localStorage.getItem("maxWeight")) || 0;
 let timerInterval;
 let sexGlobal = "male";
-let lastResult = true;
-
-const videoMap = {
-  "ラットプルダウン": "n8XH7r8v7tA",
-  "懸垂": "eGo4IYlbE5g",
-  "シーテッドロー": "9s5hQv9Z8vY",
-  "ダンベルプレス": "7z9nX6vFQwU",
-  "トライセプス": "3p8GfK2xL4A"
-};
-
-const adviceMap = {
-  "ラットプルダウン": "肩ではなく背中で引け",
-  "懸垂": "反動を使わずフルレンジ",
-  "シーテッドロー": "最後まで引き切る",
-  "ダンベルプレス": "肩を守るために肘を開きすぎない",
-  "トライセプス": "肘の位置を固定"
-};
 
 let weeklyData = JSON.parse(localStorage.getItem("weeklyData")) || {
   count: 0,
@@ -92,11 +71,32 @@ let weeklyData = JSON.parse(localStorage.getItem("weeklyData")) || {
   lastReset: new Date().toDateString()
 };
 
-function saveWeekly(){ localStorage.setItem("weeklyData", JSON.stringify(weeklyData)); }
-function saveMax(){ localStorage.setItem("maxWeight", maxWeight); }
+function saveWeekly(){
+  localStorage.setItem("weeklyData", JSON.stringify(weeklyData));
+}
 
-function isDeload(){ return weeklyData.fail >= 2; }
-function roundWeight(num){ return sexGlobal==="female" ? Math.round(num/2.5)*2.5 : Math.round(num/5)*5; }
+function saveMax(){
+  localStorage.setItem("maxWeight", maxWeight);
+}
+
+function checkWeeklyReset(){
+  let today = new Date();
+  let last = new Date(weeklyData.lastReset);
+  let diff = (today - last) / (1000*60*60*24);
+
+  if(diff >= 7){
+    weeklyData = { count: 0, fail: 0, lastReset: today.toDateString() };
+    saveWeekly();
+  }
+}
+
+function isDeload(){
+  return weeklyData.fail >= 2;
+}
+
+function roundWeight(num){
+  return sexGlobal==="female" ? Math.round(num/2.5)*2.5 : Math.round(num/5)*5;
+}
 
 function start(){
   let w = Number(document.getElementById("weight").value);
@@ -120,61 +120,63 @@ function start(){
 }
 
 function record(success){
-  lastResult = success;
+  checkWeeklyReset();
   weeklyData.count++;
   if(!success) weeklyData.fail++;
   saveWeekly();
 
-  if(stage === 5){
-    if(success){ maxWeight += (sexGlobal==="female") ? 2.5 : 5; saveMax(); }
-    stage = 3;
-  } else {
-    stage = success ? stage+1 : Math.max(1, stage-1);
-  }
+  let log = JSON.parse(localStorage.getItem("log") || "[]");
+  log.unshift({
+    date: new Date().toLocaleDateString(),
+    stage,
+    result: success ? "成功" : "失敗",
+    max: maxWeight
+  });
+  localStorage.setItem("log", JSON.stringify(log));
 
+  if(stage === 5){
+    if(success){
+      maxWeight += (sexGlobal==="female") ? 2.5 : 5;
+      saveMax();
+    }
+    stage = 3; 
+  } else {
+    if(success){
+      stage++;
+    } else {
+      stage = Math.max(1, stage - 1);
+    }
+  }
   updateMenu();
   loadLog();
 }
 
 function updateMenu(){
+  let deload = isDeload();
+  let w;
   let backList = ["ラットプルダウン 10回×3", "懸垂 8回×3", "シーテッドロー 10回×3"];
   let back = backList[(stage - 1) % backList.length];
 
-  document.getElementById("menu").innerText = `Stage${stage}\n${back}`;
+  if(deload){
+    w = roundWeight(maxWeight * 0.6);
+    document.getElementById("menu").innerText = `🔥 デロード週\nベンチ ${w}kg 8回×3\n・軽めダンベル\n・フォーム練習\n・${back}`;
+    document.getElementById("status").innerText = `Stage：${stage} / MAX：${maxWeight}kg（回復中）`;
+  } else {
+    if(stage===1) w = roundWeight(maxWeight*0.65);
+    if(stage===2) w = roundWeight(maxWeight*0.75);
+    if(stage===3) w = roundWeight(maxWeight*0.85);
+    if(stage===4) w = roundWeight(maxWeight*0.92);
+    if(stage===5) w = roundWeight(maxWeight + (sexGlobal==="female"?2.5:5));
 
-  let videoId = "";
-  let advice = "";
-
-  if(back.includes("ラットプルダウン")){
-    videoId = videoMap["ラットプルダウン"];
-    advice = adviceMap["ラットプルダウン"];
+    document.getElementById("menu").innerText = `Stage${stage}\nベンチ ${w}kg ${stage<=2?"8回×3":"3回×3"}\n・ダンベルプレス 10回×3\n・トライセプス 12回×3\n・${back}`;
+    document.getElementById("status").innerText = `Stage：${stage} / MAX：${maxWeight}kg`;
   }
-  if(back.includes("懸垂")){
-    videoId = videoMap["懸垂"];
-    advice = adviceMap["懸垂"];
-  }
-  if(back.includes("シーテッドロー")){
-    videoId = videoMap["シーテッドロー"];
-    advice = adviceMap["シーテッドロー"];
-  }
-
-  if(!lastResult){
-    videoId = videoMap["ダンベルプレス"];
-    advice = "フォームを見直そう";
-  }
-
-  document.getElementById("video").innerHTML = `
-    <iframe width="100%" height="220"
-    src="https://www.youtube.com/embed/${videoId}"
-    allowfullscreen></iframe>
-  `;
-
-  document.getElementById("advice").innerText = advice;
 }
 
 function startTimer(){
   clearInterval(timerInterval);
-  let sec = (stage<=2 ? 120 : 180);
+  let deload = isDeload();
+  let sec = deload ? 90 : (stage<=2 ? 120 : 180);
   timerInterval = setInterval(()=>{
     let m = Math.floor(sec/60);
     let s = sec%60;
@@ -195,11 +197,14 @@ function loadLog(){
 
 function resetLog(){
   if(confirm("全てのログを削除しますか？")){
-    localStorage.clear();
+    localStorage.removeItem("log");
+    localStorage.removeItem("maxWeight");
+    localStorage.removeItem("weeklyData");
     location.reload();
   }
 }
 
+// 初回読み込み
 loadLog();
 </script>
 </body>
